@@ -5,6 +5,14 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and versions are `major.minor` (0.1, 0.2, …; package.json holds them as 0.1.0, 0.2.0).
 
+## [0.3] - 2026-10-16
+
+archivision is on npm: npm install -g archivision.
+
+### Highlights
+
+- `npm install -g archivision` installs it from npm: `archivision` (and `birdview`, the old name) go on your PATH. The package holds only what runs (about 240 KB), with TypeScript as its one dependency.
+
 ## [0.2] - 2026-10-16
 
 birdview is now archivision, and open source under the MIT licence. Everything you had keeps working under the old names.

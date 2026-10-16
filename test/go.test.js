@@ -6,13 +6,23 @@ const test = require('node:test'), assert = require('node:assert/strict');
 const fs = require('fs'), os = require('os'), path = require('path'), crypto = require('crypto'), { spawnSync } = require('child_process');
 const { scanRepo, autoMap, buildRepo, validateScan, writePage } = require('../lib');
 const { goDecls, goRanges } = require('../lib/repo/scan/go');
-const { findRipwire } = require('../lib/repo/scan/ripwire');
+const { findRipwire, ALLOW } = require('../lib/repo/scan/ripwire');
 
 const FIX = path.join(__dirname, 'fixtures', 'go-svc');
-// the binary, found as a scan finds it (ARCHIVISION_RIPWIRE, else ripwire on the PATH; never in the repo); without it
-// those tests skip. They expect ripwire 0.6.7.
+// the binary, found as a scan finds it (ARCHIVISION_RIPWIRE, else ripwire on the PATH; never in the repo); without it,
+// or at a version a scan does not run (it would read no Go), those tests skip. They expect ripwire 0.6.7.
 const RW = findRipwire(FIX);
-const skip = !RW && 'no ripwire binary (put ripwire 0.6.7 on the PATH or set ARCHIVISION_RIPWIRE)';
+// its version, asked as a scan asks it: from a private folder (working directory and HOME), removed afterwards
+const versionOf = bin => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'archivision-go-version-'));
+  try {
+    const v = spawnSync(bin, ['--version'], { cwd: tmp, encoding: 'utf8', timeout: 10e3, killSignal: 'SIGKILL', env: { PATH: '/usr/bin:/bin', TMPDIR: tmp, HOME: tmp } });
+    return ((v.stdout || '').match(/^ripwire\s+(\d+\.\d+\.\d+)(?:\s|$)/m) || [])[1] || '';
+  } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
+};
+const RWV = RW ? versionOf(RW) : '';
+const skip = !RW ? 'no ripwire binary (put ripwire 0.6.7 on the PATH or set ARCHIVISION_RIPWIRE)'
+  : !ALLOW.has(RWV) ? `${RW} is ripwire ${RWV || '(unknown version)'}, not ${[...ALLOW].join(' or ')} (put that on the PATH or set ARCHIVISION_RIPWIRE)` : false;
 function copy(extra = {}) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'archivision-go-')), root = path.join(dir, 'gosvc');
   fs.cpSync(FIX, root, { recursive: true });

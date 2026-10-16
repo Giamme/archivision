@@ -8,14 +8,23 @@ A 3D isometric map you can open, in the iso-glow style, of a codebase or of an a
 Each run writes one HTML page, with everything inline except three.js, which it loads from a CDN. Open it in a browser: click a block to open it, click a part to go one level deeper, press space to play a walkthrough. On repo pages, press **b** to see what a branch changes.
 
 ```bash
+npm install -g archivision
+archivision repo path/to/a/repo --open
+archivision arch docs/ --name "My system" --open
+```
+
+The first maps a repo of yours; the second has an AI CLI draw an architecture from the documents and diagrams in `docs/`. The project was first called birdview, and `birdview` still runs the same commands.
+
+From a clone, with the example architecture:
+
+```bash
 git clone https://github.com/Giamme/archivision.git && cd archivision
 npm install
-node bin/archivision.js repo path/to/a/repo --open
 node bin/archivision.js render examples/shop/shop.arch.json --open
 node bin/archivision.js arch examples/shop/architecture.md --name "Corner Shop" --open
 ```
 
-The first maps a repo of yours, the second draws the example architecture model, and the third has an AI CLI draw it again from its source document. `npm link` puts `archivision` on your PATH. The project was first called birdview, and `birdview` still runs the same commands.
+`render` draws the example model as it is; `arch` has the AI draw it again from its source document. `npm link` puts `archivision` on your PATH.
 
 **Needs** Node 20 or later and git. Optional: Python 3.10 or later (`python3`) for Python repos, ripwire 0.6.7 for Go, the `claude` (Claude Code) or `codex` CLI, logged in, for architecture mode, and `pdftotext` for PDFs.
 
@@ -28,7 +37,7 @@ archivision repo <path> [--out page.html] [--map map.json] [--remap]
 ```
 
 **What it reads**
-- TypeScript and JavaScript (`.ts .tsx .mts .cts .js .jsx .mjs .cjs`) in the code roots: `--src` when given, else each workspace package's `src/` (or its folder), else `src/`, else the whole repo. They are read through the TypeScript compiler API, with the nearest `tsconfig.json` or `jsconfig.json` and its paths. Next.js App Router routes come from the `app/` folder of each code root.
+- TypeScript and JavaScript (`.ts .tsx .mts .cts .js .jsx .mjs .cjs`) in the code roots: `--src` when given; else each workspace package's `src/` (or the package folder, when it has no `src/` with code) and the repo's `src/`; with neither, the whole repo. `tests/`, `test/`, `__tests__/`, `browser-tests/` and `e2e/` next to the repo or a package are test roots. They are read through the TypeScript compiler API, with the nearest `tsconfig.json` or `jsconfig.json` and its paths. A file outside every root that the code imports (a script a test imports) is read too, for its symbols and calls, but not placed on the map; the Coverage section counts it. Next.js App Router routes come from the `app/` folder of each code root, `.well-known/` included; other dot-folders are skipped.
 - `prisma/schema.prisma` and every `prisma.<model>.<op>` call.
 - `.py` files, through Python's own `ast` (`python3` on the PATH, never one inside the repo): symbols, calls with how sure each is, imports, and data access (boto3 DynamoDB, S3 and SQS; DB-API cursors and the tables their SQL names, read as tokens, with each statement's own target written; SQLAlchemy and Django models, known by bases traced through the imports). Libraries are recognised by what the code imports, never by a name alone; a call or a query on a value whose type the scan does not know is counted, not drawn. Python runs isolated (`-I -S -B`, the files sent on stdin, from a folder outside the repo) and never imports the scanned code. Without `python3`, or with one older than 3.10, the Python files are counted as not read, and the page says why.
 - Deployment manifests, read as text: `serverless.yml` (functions, handlers, images, events, environment), SAM templates and Dockerfile `CMD`s. Each Lambda handler is configured (found), conventional (`lambda_handler(event, context)` that no manifest names) or unresolved, with the reason; HTTP events are routes, schedules jobs, the rest events. A bucket or table named by an environment variable takes the value the deployments running that code give it (a function's own value over its provider's) when they agree on a literal, else `$NAME`. CloudFormation tags (`!Ref`, `!Sub`) are never names. `${file(…)}` includes of functions are followed inside the repo; what the reader cannot follow (an alias, a merge key, a flow collection that does not close, a second YAML document, functions given by a tag, an include outside the repo) is listed in the Coverage section.

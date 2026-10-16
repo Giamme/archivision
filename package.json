@@ -1,12 +1,16 @@
 {
   "name": "archivision",
-  "version": "0.2.0",
-  "private": true,
+  "version": "0.3.0",
   "description": "Archivision: a 3D iso map of a codebase (parsed, no AI) or of an architecture (from documents and diagrams, with AI), linked to the code.",
   "license": "MIT",
+  "author": "Giamme",
+  "keywords": ["architecture", "codebase", "map", "visualization", "isometric", "3d", "typescript", "python", "go", "cli"],
+  "homepage": "https://github.com/Giamme/archivision#readme",
+  "bugs": "https://github.com/Giamme/archivision/issues",
   "type": "commonjs",
   "bin": { "archivision": "bin/archivision.js", "birdview": "bin/archivision.js" },
   "main": "lib/index.js",
+  "files": ["bin/", "lib/", "python/scan.py", "assets/", "examples/shop/", "CHANGELOG.md", "NOTICE"],
   "repository": { "type": "git", "url": "https://github.com/Giamme/archivision.git" },
   "engines": { "node": ">=20" },
   "scripts": {

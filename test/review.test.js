@@ -121,13 +121,19 @@ test('review 1.7: a workspace given as a literal deep path is found', () => {
   } finally { r.cleanup(); }
 });
 
-test('review 1.8: coverage counts what the map places, what it reads besides, and the files in left-out folders', () => {
+test('review 1.8: coverage counts what the map places, what it reads besides (also listed outside the roots), and the files in left-out folders', () => {
   const r = repoWith('cov', { 'src/main.ts': "import { help } from '../tools/helper';\nexport function main() { return help(); }\n", 'tools/helper.ts': fn('help') }, { commit: true });
   const r2 = repoWith('pkgcov', { 'package.json': '{ "name": "pkgcov", "workspaces": ["packages/*"] }', 'packages/p/package.json': '{ "name": "p" }', 'packages/p/index.ts': fn('p'), 'packages/p/dist/a.py': 'x = 1\n', 'packages/p/dist/b.js': 'var b;\n' }, { commit: true });
   try {
-    const S = scanRepo(r.root, {}), C = buildRepo(autoMap(S), S).ATLAS.coverage;
+    const S = scanRepo(r.root, {}), B = buildRepo(autoMap(S), S), C = B.ATLAS.coverage;
     assert.deepEqual([C.mapped, C.read, C.besides], [1, { ts: 1 }, { ts: 1 }]);
     assert.match(C.lines.join('\n'), /mapped 1 files \(1 ts\)[^\n]*\nread besides 1 files outside the roots/);
+    // the imported file is read (its symbols and calls) but placed nowhere, and the inventory of files outside the
+    // roots still lists it: that line counts every file outside them, read or not
+    assert.ok(S.files['tools/helper.ts'] && S.symbols.some(s => s.file === 'tools/helper.ts' && s.name === 'help'));
+    assert.ok(B.ATLAS.modules.every(m => m.parts.every(p => !p.code || p.code.files.every(f => f[0] !== 'tools/helper.ts'))));
+    assert.deepEqual([S.skipped.outside.files, S.skipped.outside.byDir], [1, { tools: 1 }]);
+    assert.match(C.lines.join('\n'), /\noutside the roots 1 files \(1 \.ts; in 1 tools\)/);
     const S2 = scanRepo(r2.root, {});
     assert.deepEqual(S2.skipped.folders, { files: 2, byExt: { '.js': 1, '.py': 1 }, byReason: { 'build output or assets': 2 } });
     assert.match(buildRepo(autoMap(S2), S2).ATLAS.coverage.lines.join('\n'), /in folders left out of the roots 2 files/);
