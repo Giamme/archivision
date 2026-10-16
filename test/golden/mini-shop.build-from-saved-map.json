@@ -1,0 +1,721 @@
+{
+ "mode": "repo",
+ "layers": [
+  [
+   "area-top",
+   "Top-level pages"
+  ],
+  [
+   "area-shared",
+   "Shared code"
+  ],
+  [
+   "dock",
+   "Database"
+  ]
+ ],
+ "blocks": [
+  {
+   "id": "orders",
+   "layer": "area-top",
+   "name": "Orders",
+   "short": "Orders",
+   "zones": [
+    [
+     "Screens",
+     [
+      "pages",
+      "components"
+     ]
+    ],
+    [
+     "Entry points",
+     [
+      "server-actions",
+      "api-routes"
+     ]
+    ],
+    [
+     "Logic",
+     [
+      "config"
+     ]
+    ],
+    [
+     "Data",
+     [
+      "data-access"
+     ]
+    ]
+   ],
+   "parts": [
+    {
+     "id": "pages",
+     "name": "Pages",
+     "kind": "ui",
+     "cell": [
+      0,
+      0
+     ],
+     "ports": null,
+     "files": [
+      "src/app/orders/page.tsx",
+      "src/app/products/page.tsx"
+     ],
+     "tests": [
+      [],
+      [
+       "e2e/orders.spec.ts"
+      ]
+     ],
+     "db": [],
+     "pieces": [
+      [
+       "orders",
+       "/orders",
+       "ui",
+       [
+        "src/app/orders/page.tsx",
+        5,
+        9,
+        "OrdersPage",
+        0,
+        2,
+        1
+       ]
+      ],
+      [
+       "products",
+       "/products",
+       "ui",
+       [
+        "src/app/products/page.tsx",
+        3,
+        6,
+        "ProductsPage",
+        0,
+        1,
+        0
+       ]
+      ]
+     ],
+     "links": []
+    },
+    {
+     "id": "components",
+     "name": "Components",
+     "kind": "ui",
+     "cell": [
+      0,
+      1
+     ],
+     "ports": null,
+     "files": [
+      "src/components/OrderForm.tsx"
+     ],
+     "tests": [
+      [],
+      []
+     ],
+     "db": [],
+     "pieces": [
+      [
+       "orderform",
+       "OrderForm",
+       "ui",
+       [
+        "src/components/OrderForm.tsx",
+        4,
+        6,
+        "OrderForm",
+        1,
+        1,
+        0
+       ]
+      ]
+     ],
+     "links": []
+    },
+    {
+     "id": "server-actions",
+     "name": "Server actions",
+     "kind": "gate",
+     "cell": [
+      1,
+      0
+     ],
+     "ports": null,
+     "files": [
+      "src/app/actions/orders.ts"
+     ],
+     "tests": [
+      [],
+      []
+     ],
+     "db": [],
+     "pieces": [
+      [
+       "submitorder",
+       "submitOrder",
+       "gate",
+       [
+        "src/app/actions/orders.ts",
+        4,
+        6,
+        "submitOrder",
+        2,
+        1,
+        0
+       ]
+      ]
+     ],
+     "links": []
+    },
+    {
+     "id": "api-routes",
+     "name": "API routes",
+     "kind": "endpoint",
+     "cell": [
+      1,
+      1
+     ],
+     "ports": null,
+     "files": [
+      "src/app/api/stock/route.ts"
+     ],
+     "tests": [
+      [],
+      []
+     ],
+     "db": [],
+     "pieces": [
+      [
+       "post-api-stock",
+       "POST /api/stock",
+       "endpoint",
+       [
+        "src/app/api/stock/route.ts",
+        3,
+        6,
+        "POST",
+        0,
+        1,
+        0
+       ]
+      ]
+     ],
+     "links": []
+    },
+    {
+     "id": "config",
+     "name": "Config",
+     "kind": "config",
+     "cell": [
+      2,
+      0
+     ],
+     "ports": null,
+     "files": [
+      "src/lib/db.ts"
+     ],
+     "tests": [
+      [],
+      []
+     ],
+     "db": [],
+     "pieces": [
+      [
+       "prisma",
+       "prisma",
+       "config",
+       [
+        "src/lib/db.ts",
+        2,
+        2,
+        "prisma",
+        4,
+        0,
+        0
+       ]
+      ]
+     ],
+     "links": []
+    },
+    {
+     "id": "data-access",
+     "name": "Data access",
+     "kind": "store",
+     "cell": [
+      3,
+      0
+     ],
+     "ports": null,
+     "files": [
+      "src/lib/orders.ts",
+      "src/lib/products.ts"
+     ],
+     "tests": [
+      [
+       "src/__tests__/orders.test.ts"
+      ],
+      []
+     ],
+     "db": [
+      [
+       "Order",
+       "rw",
+       1
+      ],
+      [
+       "Product",
+       "rw",
+       1
+      ]
+     ],
+     "pieces": [
+      [
+       "createorder",
+       "createOrder",
+       "process",
+       [
+        "src/lib/orders.ts",
+        6,
+        8,
+        "createOrder",
+        1,
+        0,
+        1
+       ]
+      ],
+      [
+       "listorders",
+       "listOrders",
+       "process",
+       [
+        "src/lib/orders.ts",
+        10,
+        12,
+        "listOrders",
+        1,
+        0,
+        1
+       ]
+      ],
+      [
+       "listproducts",
+       "listProducts",
+       "process",
+       [
+        "src/lib/products.ts",
+        3,
+        5,
+        "listProducts",
+        1,
+        0,
+        1
+       ]
+      ],
+      [
+       "updatestock",
+       "updateStock",
+       "process",
+       [
+        "src/lib/products.ts",
+        7,
+        9,
+        "updateStock",
+        1,
+        0,
+        1
+       ]
+      ],
+      [
+       "discount",
+       "discount",
+       "process",
+       [
+        "src/lib/orders.ts",
+        14,
+        16,
+        "discount",
+        0,
+        0,
+        0
+       ]
+      ]
+     ],
+     "links": []
+    }
+   ],
+   "links": [
+    [
+     "api-routes",
+     "data-access",
+     1,
+     "calls updateStock"
+    ],
+    [
+     "components",
+     "server-actions",
+     1,
+     "calls submitOrder"
+    ],
+    [
+     "data-access",
+     "config",
+     4,
+     "uses prisma"
+    ],
+    [
+     "pages",
+     "components",
+     1,
+     "calls OrderForm"
+    ],
+    [
+     "pages",
+     "data-access",
+     2,
+     "calls listOrders, listProducts"
+    ],
+    [
+     "pages",
+     "server-actions",
+     1,
+     "uses submitOrder"
+    ],
+    [
+     "server-actions",
+     "data-access",
+     1,
+     "calls createOrder"
+    ]
+   ]
+  },
+  {
+   "id": "shared",
+   "layer": "area-shared",
+   "name": "Shared core",
+   "short": "Shared core",
+   "zones": [
+    [
+     "Screens",
+     [
+      "pages"
+     ]
+    ]
+   ],
+   "parts": [
+    {
+     "id": "pages",
+     "name": "Pages",
+     "kind": "ui",
+     "cell": [
+      0,
+      0
+     ],
+     "ports": null,
+     "files": [
+      "src/app/layout.tsx",
+      "src/app/page.tsx"
+     ],
+     "tests": [
+      [],
+      []
+     ],
+     "db": [],
+     "pieces": [
+      [
+       "x",
+       "/",
+       "ui",
+       [
+        "src/app/page.tsx",
+        1,
+        3,
+        "HomePage",
+        0,
+        0,
+        0
+       ]
+      ],
+      [
+       "layout",
+       "layout /",
+       "ui",
+       [
+        "src/app/layout.tsx",
+        1,
+        3,
+        "RootLayout",
+        0,
+        0,
+        0
+       ]
+      ]
+     ],
+     "links": []
+    }
+   ],
+   "links": []
+  },
+  {
+   "id": "dock",
+   "layer": "dock",
+   "name": "Database (Prisma)",
+   "short": "Database",
+   "zones": [],
+   "parts": [
+    {
+     "id": "orders",
+     "name": "Orders",
+     "kind": null,
+     "cell": [
+      null,
+      null
+     ],
+     "ports": [
+      1
+     ],
+     "files": [],
+     "tests": null,
+     "db": null,
+     "pieces": [],
+     "links": []
+    }
+   ],
+   "links": []
+  }
+ ],
+ "flows": [
+  [
+   "orders",
+   "dock",
+   "reads, writes",
+   4,
+   "Orders: Order, Product",
+   [
+    1
+   ]
+  ]
+ ],
+ "journeys": [
+  [
+   "/orders → Order",
+   "Orders",
+   [
+    "orders",
+    "orders",
+    "orders",
+    "orders",
+    "P1"
+   ],
+   [
+    [
+     "src/app/orders/page.tsx",
+     5,
+     9,
+     "OrdersPage",
+     "orders/pages",
+     "orders/pages/orders",
+     0
+    ],
+    [
+     "src/components/OrderForm.tsx",
+     4,
+     6,
+     "OrderForm",
+     "orders/components",
+     "orders/components/orderform",
+     0
+    ],
+    [
+     "src/app/actions/orders.ts",
+     4,
+     6,
+     "submitOrder",
+     "orders/server-actions",
+     "orders/server-actions/submitorder",
+     0
+    ],
+    [
+     "src/lib/orders.ts",
+     6,
+     8,
+     "createOrder",
+     "orders/data-access",
+     "orders/data-access/createorder",
+     0
+    ],
+    [
+     "src/lib/orders.ts",
+     7,
+     null,
+     "createOrder",
+     null,
+     null,
+     1
+    ]
+   ]
+  ]
+ ],
+ "groups": [
+  [
+   1,
+   "orders",
+   "Orders",
+   [
+    "Product",
+    "Order",
+    "OrderLine"
+   ],
+   [
+    [
+     "orders",
+     4,
+     "rw"
+    ]
+   ]
+  ]
+ ],
+ "cmp": {
+  "bases": [
+   "dev",
+   "main"
+  ],
+  "def": 0,
+  "list": [
+   [
+    "dev",
+    "feature/discounts",
+    [
+     [
+      "src/lib/orders.ts",
+      "M"
+     ]
+    ],
+    [
+     [
+      "orders",
+      1,
+      [
+       "data-access"
+      ]
+     ]
+    ],
+    2,
+    1,
+    [],
+    []
+   ],
+   [
+    "main",
+    "feature/discounts",
+    [
+     [
+      "src/lib/orders.ts",
+      "M"
+     ]
+    ],
+    [
+     [
+      "orders",
+      1,
+      [
+       "data-access"
+      ]
+     ]
+    ],
+    2,
+    1,
+    [],
+    []
+   ],
+   [
+    "main",
+    "dev",
+    [],
+    [],
+    0,
+    0,
+    [],
+    []
+   ],
+   [
+    "dev",
+    "main",
+    [],
+    [],
+    0,
+    0,
+    [],
+    []
+   ]
+  ]
+ },
+ "rail": {
+  "x": 0,
+  "y": 238,
+  "w": 900,
+  "d": 72
+ },
+ "railTxt": "DATABASE · 1 GROUPS · 3 MODELS",
+ "ports": [
+  {
+   "n": 1,
+   "x": 204,
+   "mod": "orders",
+   "name": "Orders"
+  }
+ ],
+ "place": [
+  [
+   "orders",
+   [
+    22,
+    44,
+    364,
+    160,
+    60
+   ]
+  ],
+  [
+   "shared",
+   [
+    448,
+    44,
+    190,
+    160,
+    52
+   ]
+  ]
+ ],
+ "districts": [
+  {
+   "layer": "area-top",
+   "x": 0,
+   "y": 0,
+   "w": 408,
+   "d": 220
+  },
+  {
+   "layer": "area-shared",
+   "x": 426,
+   "y": 0,
+   "w": 474,
+   "d": 220
+  }
+ ],
+ "plate": [
+  900,
+  310
+ ],
+ "demoOpen": "orders",
+ "totals": {
+  "files": 10,
+  "lines": 76,
+  "symbols": 14,
+  "models": 3,
+  "edges": 11
+ }
+}

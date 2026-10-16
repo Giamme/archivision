@@ -1,0 +1,297 @@
+{
+ "mode": "repo",
+ "layers": [
+  [
+   "area-pkg-lib-mixed",
+   "Package lib-mixed"
+  ]
+ ],
+ "blocks": [
+  {
+   "id": "pkg-lib-mixed",
+   "layer": "area-pkg-lib-mixed",
+   "name": "Lib mixed",
+   "short": "Lib mixed",
+   "zones": [
+    [
+     "Logic",
+     [
+      "logic",
+      "config"
+     ]
+    ],
+    [
+     "Outside services",
+     [
+      "outside-calls"
+     ]
+    ]
+   ],
+   "parts": [
+    {
+     "id": "logic",
+     "name": "Logic",
+     "kind": "process",
+     "cell": [
+      0,
+      0
+     ],
+     "ports": null,
+     "files": [
+      "src/adapters/fs.ts",
+      "src/core/engine.ts",
+      "src/core/util.ts",
+      "src/legacy/old.js"
+     ],
+     "tests": [
+      [],
+      []
+     ],
+     "db": [],
+     "pieces": [
+      [
+       "filesource",
+       "fileSource",
+       "process",
+       [
+        "src/adapters/fs.ts",
+        3,
+        5,
+        "fileSource",
+        0,
+        0,
+        0
+       ]
+      ],
+      [
+       "engine",
+       "Engine",
+       "process",
+       [
+        "src/core/engine.ts",
+        6,
+        16,
+        "Engine",
+        0,
+        1,
+        0
+       ]
+      ],
+      [
+       "clamp",
+       "clamp",
+       "process",
+       [
+        "src/core/util.ts",
+        1,
+        4,
+        "clamp",
+        1,
+        0,
+        0
+       ]
+      ],
+      [
+       "oldclamp",
+       "oldClamp",
+       "process",
+       [
+        "src/legacy/old.js",
+        2,
+        4,
+        "oldClamp",
+        0,
+        0,
+        0
+       ]
+      ]
+     ],
+     "links": [
+      [
+       "engine",
+       "clamp",
+       "calls clamp"
+      ]
+     ]
+    },
+    {
+     "id": "config",
+     "name": "Config",
+     "kind": "config",
+     "cell": [
+      0,
+      1
+     ],
+     "ports": null,
+     "files": [
+      "src/index.ts"
+     ],
+     "tests": [
+      [],
+      []
+     ],
+     "db": [],
+     "pieces": [],
+     "links": []
+    },
+    {
+     "id": "outside-calls",
+     "name": "Outside calls",
+     "kind": "external",
+     "cell": [
+      1,
+      0
+     ],
+     "ports": null,
+     "files": [
+      "src/adapters/http.ts"
+     ],
+     "tests": [
+      [],
+      []
+     ],
+     "db": [],
+     "pieces": [
+      [
+       "httpsource",
+       "httpSource",
+       "process",
+       [
+        "src/adapters/http.ts",
+        4,
+        6,
+        "httpSource",
+        0,
+        0,
+        1
+       ]
+      ]
+     ],
+     "links": []
+    }
+   ],
+   "links": [
+    [
+     "outside-calls",
+     "logic",
+     1,
+     "uses VERSION"
+    ]
+   ]
+  }
+ ],
+ "flows": [],
+ "journeys": [],
+ "groups": [],
+ "cmp": {
+  "bases": [
+   "dev",
+   "main"
+  ],
+  "def": 0,
+  "list": [
+   [
+    "dev",
+    "feature/clamp",
+    [
+     [
+      "src/core/util.ts",
+      "M"
+     ]
+    ],
+    [
+     [
+      "pkg-lib-mixed",
+      1,
+      [
+       "logic"
+      ]
+     ]
+    ],
+    1,
+    1,
+    [],
+    []
+   ],
+   [
+    "main",
+    "feature/clamp",
+    [
+     [
+      "src/core/util.ts",
+      "M"
+     ]
+    ],
+    [
+     [
+      "pkg-lib-mixed",
+      1,
+      [
+       "logic"
+      ]
+     ]
+    ],
+    1,
+    1,
+    [],
+    []
+   ],
+   [
+    "main",
+    "dev",
+    [],
+    [],
+    0,
+    0,
+    [],
+    []
+   ],
+   [
+    "dev",
+    "main",
+    [],
+    [],
+    0,
+    0,
+    [],
+    []
+   ]
+  ]
+ },
+ "rail": null,
+ "railTxt": "",
+ "ports": [],
+ "place": [
+  [
+   "pkg-lib-mixed",
+   [
+    22,
+    44,
+    190,
+    160,
+    55
+   ]
+  ]
+ ],
+ "districts": [
+  {
+   "layer": "area-pkg-lib-mixed",
+   "x": 0,
+   "y": 0,
+   "w": 900,
+   "d": 220
+  }
+ ],
+ "plate": [
+  900,
+  220
+ ],
+ "demoOpen": "pkg-lib-mixed",
+ "totals": {
+  "files": 6,
+  "lines": 46,
+  "symbols": 7,
+  "models": 0,
+  "edges": 2
+ }
+}

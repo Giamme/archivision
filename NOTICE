@@ -1,0 +1,9 @@
+archivision is MIT-licensed (see LICENSE). It includes or loads third-party work:
+
+- assets/shell-3d.html and the drawing style of assets/figure.js come from iso-glow
+  (MIT; Copyright (c) 2026 April Zhu, and Tolga Cohce for iso-figure on which it is based).
+  The full licence is in assets/ISO-GLOW-LICENSE. Every page archivision writes carries both
+  licences in a comment in its head.
+- The pages load three.js 0.160.0 (MIT, Copyright (c) 2010-2023 three.js authors) from cdn.jsdelivr.net.
+- lib/repo/scan/tsc.js uses the TypeScript compiler API (TypeScript 5.9.3, Apache-2.0, Microsoft),
+  installed as an npm dependency, not bundled.

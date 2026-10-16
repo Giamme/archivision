@@ -1,0 +1,737 @@
+{
+ "mode": "repo",
+ "layers": [
+  [
+   "area-pkg-py-lambda",
+   "Package py-lambda"
+  ],
+  [
+   "dock",
+   "Data"
+  ]
+ ],
+ "blocks": [
+  {
+   "id": "pkg-py-lambda-handlers",
+   "layer": "area-pkg-py-lambda",
+   "name": "Handlers",
+   "short": "Handlers",
+   "zones": [
+    [
+     "Entry points",
+     [
+      "handlers"
+     ]
+    ]
+   ],
+   "parts": [
+    {
+     "id": "handlers",
+     "name": "Handlers",
+     "kind": "endpoint",
+     "cell": [
+      0,
+      0
+     ],
+     "ports": null,
+     "files": [
+      "handlers/jobs.py",
+      "handlers/orders.py",
+      "handlers/uploads.py"
+     ],
+     "tests": [
+      [],
+      []
+     ],
+     "db": [
+      [
+       "daily_totals",
+       "w",
+       1
+      ],
+      [
+       "orders_archive",
+       "r",
+       1
+      ],
+      [
+       "shop-archive",
+       "w",
+       1
+      ],
+      [
+       "shop-uploads",
+       "r",
+       1
+      ]
+     ],
+     "pieces": [
+      [
+       "nightly",
+       "nightly",
+       "endpoint",
+       [
+        "handlers/jobs.py",
+        4,
+        15,
+        "nightly",
+        0,
+        0,
+        0
+       ]
+      ],
+      [
+       "onupload",
+       "onUpload",
+       "endpoint",
+       [
+        "handlers/uploads.py",
+        8,
+        12,
+        "on_upload",
+        0,
+        0,
+        0
+       ]
+      ],
+      [
+       "createorder",
+       "createOrder",
+       "endpoint",
+       [
+        "handlers/orders.py",
+        7,
+        11,
+        "create",
+        0,
+        2,
+        0
+       ]
+      ],
+      [
+       "getorder",
+       "getOrder",
+       "endpoint",
+       [
+        "handlers/orders.py",
+        14,
+        15,
+        "get",
+        0,
+        1,
+        0
+       ]
+      ]
+     ],
+     "links": []
+    }
+   ],
+   "links": []
+  },
+  {
+   "id": "pkg-py-lambda-lib",
+   "layer": "area-pkg-py-lambda",
+   "name": "Lib",
+   "short": "Lib",
+   "zones": [
+    [
+     "Logic",
+     [
+      "config",
+      "logic"
+     ]
+    ],
+    [
+     "Data",
+     [
+      "data-access"
+     ]
+    ]
+   ],
+   "parts": [
+    {
+     "id": "config",
+     "name": "Config",
+     "kind": "config",
+     "cell": [
+      0,
+      0
+     ],
+     "ports": null,
+     "files": [
+      "lib/__init__.py"
+     ],
+     "tests": [
+      [],
+      []
+     ],
+     "db": [],
+     "pieces": [],
+     "links": []
+    },
+    {
+     "id": "logic",
+     "name": "Logic",
+     "kind": "process",
+     "cell": [
+      0,
+      1
+     ],
+     "ports": null,
+     "files": [
+      "lib/util.py"
+     ],
+     "tests": [
+      [],
+      []
+     ],
+     "db": [],
+     "pieces": [
+      [
+       "money",
+       "money",
+       "process",
+       [
+        "lib/util.py",
+        4,
+        5,
+        "money",
+        1,
+        0,
+        0
+       ]
+      ],
+      [
+       "run-all",
+       "run_all",
+       "process",
+       [
+        "lib/util.py",
+        8,
+        11,
+        "run_all",
+        0,
+        0,
+        0
+       ]
+      ],
+      [
+       "executor",
+       "Executor",
+       "process",
+       [
+        "lib/util.py",
+        14,
+        16,
+        "Executor",
+        1,
+        0,
+        0
+       ]
+      ],
+      [
+       "not-a-cursor",
+       "not_a_cursor",
+       "process",
+       [
+        "lib/util.py",
+        19,
+        20,
+        "not_a_cursor",
+        0,
+        1,
+        0
+       ]
+      ]
+     ],
+     "links": [
+      [
+       "not-a-cursor",
+       "executor",
+       "calls Executor"
+      ]
+     ]
+    },
+    {
+     "id": "data-access",
+     "name": "Data access",
+     "kind": "store",
+     "cell": [
+      1,
+      0
+     ],
+     "ports": null,
+     "files": [
+      "lib/store.py"
+     ],
+     "tests": [
+      [
+       "tests/test_store.py"
+      ],
+      []
+     ],
+     "db": [
+      [
+       "$ORDERS_TABLE",
+       "rw",
+       2
+      ],
+      [
+       "shop-jobs",
+       "w",
+       2
+      ]
+     ],
+     "pieces": [
+      [
+       "save-order",
+       "save_order",
+       "process",
+       [
+        "lib/store.py",
+        10,
+        12,
+        "save_order",
+        1,
+        0,
+        0
+       ]
+      ],
+      [
+       "load-order",
+       "load_order",
+       "process",
+       [
+        "lib/store.py",
+        15,
+        16,
+        "load_order",
+        1,
+        0,
+        0
+       ]
+      ],
+      [
+       "refund",
+       "refund",
+       "process",
+       [
+        "lib/store.py",
+        24,
+        25,
+        "refund",
+        0,
+        0,
+        0
+       ]
+      ],
+      [
+       "archive",
+       "archive",
+       "process",
+       [
+        "lib/store.py",
+        19,
+        21,
+        "archive",
+        0,
+        0,
+        0
+       ]
+      ]
+     ],
+     "links": []
+    }
+   ],
+   "links": []
+  },
+  {
+   "id": "pkg-py-lambda",
+   "layer": "area-pkg-py-lambda",
+   "name": "Py lambda",
+   "short": "Py lambda",
+   "zones": [
+    [
+     "Entry points",
+     [
+      "handlers"
+     ]
+    ]
+   ],
+   "parts": [
+    {
+     "id": "handlers",
+     "name": "Handlers",
+     "kind": "endpoint",
+     "cell": [
+      0,
+      0
+     ],
+     "ports": null,
+     "files": [
+      "images/pdf/app.py",
+      "tools/cleanup.py"
+     ],
+     "tests": [
+      [],
+      []
+     ],
+     "db": [],
+     "pieces": [
+      [
+       "pdf",
+       "pdf",
+       "endpoint",
+       [
+        "images/pdf/app.py",
+        1,
+        2,
+        "handler",
+        0,
+        0,
+        0
+       ]
+      ],
+      [
+       "lambda-handler",
+       "lambda_handler",
+       "endpoint",
+       [
+        "tools/cleanup.py",
+        1,
+        2,
+        "lambda_handler",
+        0,
+        0,
+        0
+       ]
+      ]
+     ],
+     "links": []
+    }
+   ],
+   "links": []
+  },
+  {
+   "id": "dock",
+   "layer": "dock",
+   "name": "Data (SQL, S3, DynamoDB, SQS)",
+   "short": "Data",
+   "zones": [],
+   "parts": [
+    {
+     "id": "pkg-py-lambda-handlers",
+     "name": "Handlers",
+     "kind": null,
+     "cell": [
+      null,
+      null
+     ],
+     "ports": [
+      1
+     ],
+     "files": [],
+     "tests": null,
+     "db": null,
+     "pieces": [],
+     "links": []
+    },
+    {
+     "id": "pkg-py-lambda-lib",
+     "name": "Lib",
+     "kind": null,
+     "cell": [
+      null,
+      null
+     ],
+     "ports": [
+      2
+     ],
+     "files": [],
+     "tests": null,
+     "db": null,
+     "pieces": [],
+     "links": []
+    }
+   ],
+   "links": []
+  }
+ ],
+ "flows": [
+  [
+   "pkg-py-lambda-handlers",
+   "dock",
+   "reads, writes",
+   4,
+   "Handlers: orders_archive, daily_totals, shop-uploads, shop-archive",
+   [
+    1
+   ]
+  ],
+  [
+   "pkg-py-lambda-handlers",
+   "pkg-py-lambda-lib",
+   "uses",
+   3,
+   "save_order, money, load_order",
+   null
+  ],
+  [
+   "pkg-py-lambda-lib",
+   "dock",
+   "reads, writes",
+   4,
+   "Lib: $ORDERS_TABLE, shop-jobs",
+   [
+    2
+   ]
+  ]
+ ],
+ "journeys": [
+  [
+   "POST /orders → $ORDERS_TABLE",
+   "Handlers",
+   [
+    "pkg-py-lambda-handlers",
+    "pkg-py-lambda-lib",
+    "P2"
+   ],
+   [
+    [
+     "handlers/orders.py",
+     7,
+     11,
+     "create",
+     "pkg-py-lambda-handlers/handlers",
+     "pkg-py-lambda-handlers/handlers/createorder",
+     0
+    ],
+    [
+     "lib/store.py",
+     10,
+     12,
+     "save_order",
+     "pkg-py-lambda-lib/data-access",
+     "pkg-py-lambda-lib/data-access/save-order",
+     0
+    ],
+    [
+     "lib/store.py",
+     11,
+     null,
+     "save_order",
+     null,
+     null,
+     1
+    ]
+   ]
+  ]
+ ],
+ "groups": [
+  [
+   1,
+   "pkg-py-lambda-handlers",
+   "Handlers",
+   [
+    "orders_archive",
+    "daily_totals",
+    "shop-uploads",
+    "shop-archive"
+   ],
+   [
+    [
+     "pkg-py-lambda-handlers",
+     4,
+     "rw"
+    ]
+   ]
+  ],
+  [
+   2,
+   "pkg-py-lambda-lib",
+   "Lib",
+   [
+    "$ORDERS_TABLE",
+    "shop-jobs"
+   ],
+   [
+    [
+     "pkg-py-lambda-lib",
+     4,
+     "rw"
+    ]
+   ]
+  ]
+ ],
+ "cmp": {
+  "bases": [
+   "dev",
+   "main"
+  ],
+  "def": 0,
+  "list": [
+   [
+    "dev",
+    "feature/refunds",
+    [
+     [
+      "handlers/orders.py",
+      "M"
+     ],
+     [
+      "lib/store.py",
+      "M"
+     ]
+    ],
+    [
+     [
+      "pkg-py-lambda-handlers",
+      1,
+      [
+       "handlers"
+      ]
+     ],
+     [
+      "pkg-py-lambda-lib",
+      1,
+      [
+       "data-access"
+      ]
+     ]
+    ],
+    2,
+    2,
+    [],
+    []
+   ],
+   [
+    "main",
+    "feature/refunds",
+    [
+     [
+      "handlers/orders.py",
+      "M"
+     ],
+     [
+      "lib/store.py",
+      "M"
+     ]
+    ],
+    [
+     [
+      "pkg-py-lambda-handlers",
+      1,
+      [
+       "handlers"
+      ]
+     ],
+     [
+      "pkg-py-lambda-lib",
+      1,
+      [
+       "data-access"
+      ]
+     ]
+    ],
+    2,
+    2,
+    [],
+    []
+   ],
+   [
+    "main",
+    "dev",
+    [],
+    [],
+    0,
+    0,
+    [],
+    []
+   ],
+   [
+    "dev",
+    "main",
+    [],
+    [],
+    0,
+    0,
+    [],
+    []
+   ]
+  ]
+ },
+ "rail": {
+  "x": 0,
+  "y": 238,
+  "w": 900,
+  "d": 72
+ },
+ "railTxt": "DATA · 2 GROUPS · 6 RESOURCES",
+ "ports": [
+  {
+   "n": 1,
+   "x": 117,
+   "mod": "pkg-py-lambda-handlers",
+   "name": "Handlers"
+  },
+  {
+   "n": 2,
+   "x": 325,
+   "mod": "pkg-py-lambda-lib",
+   "name": "Lib"
+  }
+ ],
+ "place": [
+  [
+   "pkg-py-lambda",
+   [
+    438,
+    44,
+    190,
+    160,
+    52
+   ]
+  ],
+  [
+   "pkg-py-lambda-handlers",
+   [
+    22,
+    44,
+    190,
+    160,
+    52
+   ]
+  ],
+  [
+   "pkg-py-lambda-lib",
+   [
+    230,
+    44,
+    190,
+    160,
+    55
+   ]
+  ]
+ ],
+ "districts": [
+  {
+   "layer": "area-pkg-py-lambda",
+   "x": 0,
+   "y": 0,
+   "w": 900,
+   "d": 220
+  }
+ ],
+ "plate": [
+  900,
+  310
+ ],
+ "demoOpen": "pkg-py-lambda-handlers",
+ "totals": {
+  "files": 8,
+  "lines": 99,
+  "symbols": 19,
+  "models": 6,
+  "edges": 3
+ }
+}

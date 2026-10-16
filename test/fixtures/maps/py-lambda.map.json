@@ -1,0 +1,176 @@
+{
+ "generator": "automap",
+ "commit": "3525fab710ca8dec2246ff5180db625a907330a4",
+ "intro": "py-lambda: 8 files grouped by their routes, names and imports, with no AI. Open a block to see its parts in the order requests flow, then a part to reach its functions and files.",
+ "layers": [
+  {
+   "id": "area-pkg-py-lambda",
+   "name": "Package py-lambda",
+   "blurb": "3 blocks",
+   "tip": "The code of the package py-lambda, in the repo."
+  }
+ ],
+ "modules": [
+  {
+   "id": "pkg-py-lambda-handlers",
+   "layer": "area-pkg-py-lambda",
+   "name": "Handlers",
+   "short": "Handlers",
+   "role": "3 handler files",
+   "tip": "Code in handlers. Writes daily_totals, shop-archive.",
+   "zones": [
+    {
+     "name": "Entry points",
+     "tip": "Server actions, API routes and Lambda handlers: where requests and events come in.",
+     "parts": [
+      "handlers"
+     ]
+    }
+   ],
+   "parts": [
+    {
+     "id": "handlers",
+     "name": "Handlers",
+     "kind": "endpoint",
+     "what": "3 files in handlers",
+     "tip": "Handlers: nightly, createOrder, getOrder, onUpload. Writes daily_totals, shop-archive. Reads orders_archive, shop-uploads.",
+     "globs": [
+      "handlers/**"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "pkg-py-lambda-lib",
+   "layer": "area-pkg-py-lambda",
+   "name": "Lib",
+   "short": "Lib",
+   "role": "3 files in lib",
+   "tip": "Code in lib. Writes $ORDERS_TABLE, shop-jobs. Used most by Handlers.",
+   "zones": [
+    {
+     "name": "Logic",
+     "tip": "Functions that decide and compute.",
+     "parts": [
+      "config",
+      "logic"
+     ]
+    },
+    {
+     "name": "Data",
+     "tip": "Code that reads and writes the data stores.",
+     "parts": [
+      "data-access"
+     ]
+    }
+   ],
+   "parts": [
+    {
+     "id": "config",
+     "name": "Config",
+     "kind": "config",
+     "what": "1 file in lib",
+     "tip": "1 files.",
+     "globs": [
+      "lib/__init__.py"
+     ]
+    },
+    {
+     "id": "logic",
+     "name": "Logic",
+     "kind": "process",
+     "what": "1 file in lib",
+     "tip": "Exports: money, run_all, Executor, not_a_cursor.",
+     "globs": [
+      "lib/util.py"
+     ]
+    },
+    {
+     "id": "data-access",
+     "name": "Data access",
+     "kind": "store",
+     "what": "1 file in lib",
+     "tip": "Exports: save_order, load_order, archive, refund. Writes $ORDERS_TABLE, shop-jobs. Reads $ORDERS_TABLE.",
+     "globs": [
+      "lib/store.py"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "pkg-py-lambda",
+   "layer": "area-pkg-py-lambda",
+   "name": "Py lambda",
+   "short": "Py lambda",
+   "role": "2 handler files",
+   "tip": "Code in the repo.",
+   "zones": [
+    {
+     "name": "Entry points",
+     "tip": "Server actions, API routes and Lambda handlers: where requests and events come in.",
+     "parts": [
+      "handlers"
+     ]
+    }
+   ],
+   "parts": [
+    {
+     "id": "handlers",
+     "name": "Handlers",
+     "kind": "endpoint",
+     "what": "2 files",
+     "tip": "Handlers: pdf, lambda_handler.",
+     "globs": [
+      "images/pdf/app.py",
+      "tools/cleanup.py"
+     ]
+    }
+   ]
+  }
+ ],
+ "dbGroups": [
+  {
+   "id": "pkg-py-lambda-handlers",
+   "name": "Handlers",
+   "tip": "Resources written or read mostly by «Handlers».",
+   "models": [
+    "orders_archive",
+    "daily_totals",
+    "shop-uploads",
+    "shop-archive"
+   ]
+  },
+  {
+   "id": "pkg-py-lambda-lib",
+   "name": "Lib",
+   "tip": "Resources written or read mostly by «Lib».",
+   "models": [
+    "$ORDERS_TABLE",
+    "shop-jobs"
+   ]
+  }
+ ],
+ "journeys": [
+  {
+   "name": "POST /orders → $ORDERS_TABLE",
+   "group": "Handlers",
+   "caption": "Follows the calls from the API route POST /orders to the code that writes $ORDERS_TABLE, shop-jobs.",
+   "steps": [
+    {
+     "module": "pkg-py-lambda-handlers",
+     "part": "handlers",
+     "symbol": "create",
+     "file": "handlers/orders.py",
+     "note": "The API route POST /orders receives the request and calls save_order."
+    },
+    {
+     "module": "pkg-py-lambda-lib",
+     "part": "data-access",
+     "symbol": "save_order",
+     "file": "lib/store.py",
+     "note": "Function save_order writes $ORDERS_TABLE, shop-jobs."
+    }
+   ]
+  }
+ ]
+}

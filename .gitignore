@@ -1,0 +1,14 @@
+node_modules
+# pages and their side files are outputs: keep them out unless you mean to share one
+*.archivision.html
+*.archivision.map.json
+*.archivision.arch.json
+.archivision/
+# and under the old name
+*.birdview.html
+*.birdview.map.json
+*.birdview.arch.json
+.birdview/
+.DS_Store
+__pycache__/
+*.pyc

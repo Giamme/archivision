@@ -1,0 +1,1 @@
+{ "extends": "../../tsconfig.base.json", "compilerOptions": { "baseUrl": ".", "paths": { "@/*": ["./src/*"], "@mono/core": ["../../packages/core/src/index.ts"], "@mono/ui": ["../../packages/ui/src/index.ts"] } } }

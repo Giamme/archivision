@@ -1,0 +1,76 @@
+{
+ "generator": "automap",
+ "commit": "fb43606d3c6c0026432e4ba285c63fa2d254d0d6",
+ "intro": "lib-mixed: 6 files grouped by their routes, names and imports, with no AI. Open a block to see its parts in the order requests flow, then a part to reach its functions and files.",
+ "layers": [
+  {
+   "id": "area-pkg-lib-mixed",
+   "name": "Package lib-mixed",
+   "blurb": "1 blocks",
+   "tip": "The code of the package lib-mixed, in src."
+  }
+ ],
+ "modules": [
+  {
+   "id": "pkg-lib-mixed",
+   "layer": "area-pkg-lib-mixed",
+   "name": "Lib mixed",
+   "short": "Lib mixed",
+   "role": "package lib-mixed · 6 files",
+   "tip": "Code in src.",
+   "zones": [
+    {
+     "name": "Logic",
+     "tip": "Functions that decide and compute.",
+     "parts": [
+      "logic",
+      "config"
+     ]
+    },
+    {
+     "name": "Outside services",
+     "tip": "Calls to other services and models.",
+     "parts": [
+      "outside-calls"
+     ]
+    }
+   ],
+   "parts": [
+    {
+     "id": "logic",
+     "name": "Logic",
+     "kind": "process",
+     "what": "4 files in src",
+     "tip": "Exports: fileSource, Engine, clamp, oldClamp.",
+     "globs": [
+      "src/core/**",
+      "src/adapters/fs.ts",
+      "src/legacy/old.js"
+     ]
+    },
+    {
+     "id": "config",
+     "name": "Config",
+     "kind": "config",
+     "what": "1 file in src",
+     "tip": "1 files.",
+     "globs": [
+      "src/index.ts"
+     ]
+    },
+    {
+     "id": "outside-calls",
+     "name": "Outside calls",
+     "kind": "external",
+     "what": "1 file in adapters",
+     "tip": "Exports: httpSource.",
+     "globs": [
+      "src/adapters/http.ts"
+     ]
+    }
+   ]
+  }
+ ],
+ "dbGroups": [],
+ "journeys": []
+}

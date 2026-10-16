@@ -1,0 +1,48 @@
+service: py-shop
+
+provider:
+  name: aws
+  runtime: python3.11
+  ecr:
+    images:
+      pdfimage:
+        path: ./images/pdf
+  environment:
+    ORDERS_TABLE: orders-${sls:stage}
+    UPLOADS_BUCKET: shop-uploads
+    JOBS_QUEUE: shop-jobs
+
+functions:
+  createOrder:
+    handler: handlers/orders.create
+    events:
+      - http:
+          path: orders
+          method: post
+  getOrder:
+    handler: handlers/orders.get
+    events:
+      - httpApi:
+          path: /orders/{id}
+          method: get
+  nightly:
+    handler: handlers/jobs.nightly
+    events:
+      - schedule: rate(1 day)
+  onUpload:
+    handler: handlers/uploads.on_upload
+    events:
+      - s3:
+          bucket: shop-uploads
+          event: s3:ObjectCreated:*
+  gone:
+    handler: handlers/gone.main
+  built:
+    handler: dist/index.handler
+    runtime: nodejs20.x
+  pdf:
+    image: pdfimage
+  thumbs:
+    image:
+      name: thumbsimage
+      uri: 123456789012.dkr.ecr.eu-west-1.amazonaws.com/thumbs:latest

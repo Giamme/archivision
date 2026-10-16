@@ -1,0 +1,1368 @@
+{
+ "mode": "repo",
+ "layers": [
+  [
+   "area-top",
+   "Top-level pages"
+  ],
+  [
+   "area-api",
+   "API only"
+  ],
+  [
+   "dock",
+   "Database"
+  ],
+  [
+   "area-shared",
+   "Shared code"
+  ]
+ ],
+ "blocks": [
+  {
+   "id": "home",
+   "layer": "area-top",
+   "name": "Home",
+   "short": "Home",
+   "zones": [
+    [
+     "Screens",
+     [
+      "pages"
+     ]
+    ]
+   ],
+   "parts": [
+    {
+     "id": "pages",
+     "name": "Pages",
+     "kind": "ui",
+     "cell": [
+      0,
+      0
+     ],
+     "ports": null,
+     "files": [
+      "src/app/(shop)/layout.tsx",
+      "src/app/error.tsx",
+      "src/app/layout.tsx",
+      "src/app/loading.tsx",
+      "src/app/page.tsx"
+     ],
+     "tests": [
+      [],
+      []
+     ],
+     "db": [],
+     "pieces": [
+      [
+       "x",
+       "/",
+       "ui",
+       [
+        "src/app/page.tsx",
+        1,
+        3,
+        "HomePage",
+        0,
+        0,
+        0
+       ]
+      ],
+      [
+       "layout",
+       "layout /",
+       "ui",
+       [
+        "src/app/(shop)/layout.tsx",
+        1,
+        3,
+        "ShopLayout",
+        0,
+        0,
+        0
+       ]
+      ],
+      [
+       "layout-2",
+       "layout /",
+       "ui",
+       [
+        "src/app/layout.tsx",
+        1,
+        3,
+        "RootLayout",
+        0,
+        0,
+        0
+       ]
+      ],
+      [
+       "errorboundary",
+       "ErrorBoundary",
+       "ui",
+       [
+        "src/app/error.tsx",
+        3,
+        5,
+        "ErrorBoundary",
+        0,
+        0,
+        0
+       ]
+      ],
+      [
+       "loading",
+       "Loading",
+       "ui",
+       [
+        "src/app/loading.tsx",
+        1,
+        3,
+        "Loading",
+        0,
+        0,
+        0
+       ]
+      ]
+     ],
+     "links": []
+    }
+   ],
+   "links": []
+  },
+  {
+   "id": "products",
+   "layer": "area-top",
+   "name": "Products",
+   "short": "Products",
+   "zones": [
+    [
+     "Screens",
+     [
+      "pages"
+     ]
+    ],
+    [
+     "Entry points",
+     [
+      "server-actions"
+     ]
+    ],
+    [
+     "Data",
+     [
+      "data-access"
+     ]
+    ]
+   ],
+   "parts": [
+    {
+     "id": "pages",
+     "name": "Pages",
+     "kind": "ui",
+     "cell": [
+      0,
+      0
+     ],
+     "ports": null,
+     "files": [
+      "src/app/(shop)/products/[id]/page.tsx",
+      "src/app/(shop)/products/page.tsx"
+     ],
+     "tests": [
+      [],
+      [
+       "e2e/shop.spec.ts"
+      ]
+     ],
+     "db": [],
+     "pieces": [
+      [
+       "products-id",
+       "/products/[id]",
+       "ui",
+       [
+        "src/app/(shop)/products/[id]/page.tsx",
+        5,
+        8,
+        "ProductPage",
+        0,
+        3,
+        0
+       ]
+      ],
+      [
+       "products",
+       "/products",
+       "ui",
+       [
+        "src/app/(shop)/products/page.tsx",
+        3,
+        6,
+        "ProductsPage",
+        0,
+        1,
+        0
+       ]
+      ],
+      [
+       "products-2",
+       "/products",
+       "ui",
+       [
+        "src/app/(shop)/products/page.tsx",
+        8,
+        8,
+        "ProductsPage",
+        0,
+        1,
+        0
+       ]
+      ]
+     ],
+     "links": []
+    },
+    {
+     "id": "server-actions",
+     "name": "Server actions",
+     "kind": "gate",
+     "cell": [
+      1,
+      0
+     ],
+     "ports": null,
+     "files": [
+      "src/app/actions/cart.ts"
+     ],
+     "tests": [
+      [],
+      []
+     ],
+     "db": [],
+     "pieces": [
+      [
+       "addtocart",
+       "addToCart",
+       "gate",
+       [
+        "src/app/actions/cart.ts",
+        10,
+        12,
+        "addToCart",
+        1,
+        2,
+        0
+       ]
+      ]
+     ],
+     "links": []
+    },
+    {
+     "id": "data-access",
+     "name": "Data access",
+     "kind": "store",
+     "cell": [
+      2,
+      0
+     ],
+     "ports": null,
+     "files": [
+      "src/lib/catalog.ts"
+     ],
+     "tests": [
+      [],
+      []
+     ],
+     "db": [
+      [
+       "Product",
+       "r",
+       2
+      ]
+     ],
+     "pieces": [
+      [
+       "getproduct",
+       "getProduct",
+       "process",
+       [
+        "src/lib/catalog.ts",
+        7,
+        9,
+        "getProduct",
+        2,
+        0,
+        1
+       ]
+      ],
+      [
+       "listproducts",
+       "listProducts",
+       "process",
+       [
+        "src/lib/catalog.ts",
+        3,
+        5,
+        "listProducts",
+        1,
+        0,
+        1
+       ]
+      ]
+     ],
+     "links": []
+    }
+   ],
+   "links": [
+    [
+     "pages",
+     "data-access",
+     2,
+     "calls getProduct, listProducts"
+    ],
+    [
+     "server-actions",
+     "data-access",
+     1,
+     "calls getProduct"
+    ]
+   ]
+  },
+  {
+   "id": "orders",
+   "layer": "area-api",
+   "name": "Orders",
+   "short": "Orders",
+   "zones": [
+    [
+     "Entry points",
+     [
+      "api-routes"
+     ]
+    ],
+    [
+     "Logic",
+     [
+      "config"
+     ]
+    ],
+    [
+     "Data",
+     [
+      "data-access"
+     ]
+    ]
+   ],
+   "parts": [
+    {
+     "id": "api-routes",
+     "name": "API routes",
+     "kind": "endpoint",
+     "cell": [
+      0,
+      0
+     ],
+     "ports": null,
+     "files": [
+      "src/app/api/orders/[id]/route.ts",
+      "src/app/api/orders/route.ts"
+     ],
+     "tests": [
+      [],
+      []
+     ],
+     "db": [],
+     "pieces": [
+      [
+       "delete-api-orders-id",
+       "DELETE /api/orders/[id]",
+       "endpoint",
+       [
+        "src/app/api/orders/[id]/route.ts",
+        3,
+        5,
+        "DELETE",
+        0,
+        1,
+        0
+       ]
+      ],
+      [
+       "get-api-orders",
+       "GET /api/orders",
+       "endpoint",
+       [
+        "src/app/api/orders/route.ts",
+        3,
+        6,
+        "GET",
+        0,
+        1,
+        0
+       ]
+      ],
+      [
+       "post-api-orders",
+       "POST /api/orders",
+       "endpoint",
+       [
+        "src/app/api/orders/route.ts",
+        8,
+        11,
+        "POST",
+        0,
+        1,
+        0
+       ]
+      ]
+     ],
+     "links": []
+    },
+    {
+     "id": "config",
+     "name": "Config",
+     "kind": "config",
+     "cell": [
+      1,
+      0
+     ],
+     "ports": null,
+     "files": [
+      "src/lib/db.ts"
+     ],
+     "tests": [
+      [],
+      []
+     ],
+     "db": [],
+     "pieces": [
+      [
+       "prisma",
+       "prisma",
+       "config",
+       [
+        "src/lib/db.ts",
+        1,
+        1,
+        "prisma",
+        5,
+        0,
+        0
+       ]
+      ]
+     ],
+     "links": []
+    },
+    {
+     "id": "data-access",
+     "name": "Data access",
+     "kind": "store",
+     "cell": [
+      2,
+      0
+     ],
+     "ports": null,
+     "files": [
+      "src/lib/checkout.ts"
+     ],
+     "tests": [
+      [
+       "tests/checkout.test.ts"
+      ],
+      []
+     ],
+     "db": [
+      [
+       "AuditLog",
+       "w",
+       1
+      ],
+      [
+       "Order",
+       "rw",
+       1
+      ]
+     ],
+     "pieces": [
+      [
+       "checkout",
+       "checkout",
+       "process",
+       [
+        "src/lib/checkout.ts",
+        5,
+        12,
+        "checkout",
+        2,
+        1,
+        1
+       ]
+      ],
+      [
+       "cancelorder",
+       "cancelOrder",
+       "process",
+       [
+        "src/lib/checkout.ts",
+        14,
+        17,
+        "cancelOrder",
+        1,
+        0,
+        1
+       ]
+      ],
+      [
+       "listorders",
+       "listOrders",
+       "process",
+       [
+        "src/lib/checkout.ts",
+        19,
+        21,
+        "listOrders",
+        1,
+        0,
+        1
+       ]
+      ]
+     ],
+     "links": []
+    }
+   ],
+   "links": [
+    [
+     "api-routes",
+     "data-access",
+     3,
+     "calls cancelOrder, listOrders +1"
+    ],
+    [
+     "data-access",
+     "config",
+     3,
+     "uses prisma"
+    ]
+   ]
+  },
+  {
+   "id": "shared",
+   "layer": "area-shared",
+   "name": "Shared core",
+   "short": "Shared core",
+   "zones": [
+    [
+     "Screens",
+     [
+      "pages",
+      "components"
+     ]
+    ],
+    [
+     "Entry points",
+     [
+      "server-actions"
+     ]
+    ],
+    [
+     "Logic",
+     [
+      "logic"
+     ]
+    ]
+   ],
+   "parts": [
+    {
+     "id": "pages",
+     "name": "Pages",
+     "kind": "ui",
+     "cell": [
+      0,
+      0
+     ],
+     "ports": null,
+     "files": [
+      "src/app/@modal/login/page.tsx",
+      "src/app/blog/[...slug]/page.tsx",
+      "src/app/docs/[[...slug]]/page.tsx"
+     ],
+     "tests": [
+      [],
+      [
+       "e2e/shop.spec.ts"
+      ]
+     ],
+     "db": [],
+     "pieces": [
+      [
+       "login",
+       "/login",
+       "ui",
+       [
+        "src/app/@modal/login/page.tsx",
+        1,
+        3,
+        "LoginModal",
+        0,
+        0,
+        0
+       ]
+      ],
+      [
+       "blog-slug",
+       "/blog/[...slug]",
+       "ui",
+       [
+        "src/app/blog/[...slug]/page.tsx",
+        3,
+        5,
+        "BlogPage",
+        0,
+        1,
+        0
+       ]
+      ],
+      [
+       "docs-slug",
+       "/docs/[[...slug]]",
+       "ui",
+       [
+        "src/app/docs/[[...slug]]/page.tsx",
+        1,
+        3,
+        "DocsPage",
+        0,
+        0,
+        0
+       ]
+      ]
+     ],
+     "links": []
+    },
+    {
+     "id": "components",
+     "name": "Components",
+     "kind": "ui",
+     "cell": [
+      0,
+      1
+     ],
+     "ports": null,
+     "files": [
+      "src/components/Cart.tsx",
+      "src/hooks/useCart.ts"
+     ],
+     "tests": [
+      [],
+      []
+     ],
+     "db": [],
+     "pieces": [
+      [
+       "cart",
+       "Cart",
+       "ui",
+       [
+        "src/components/Cart.tsx",
+        5,
+        8,
+        "Cart",
+        1,
+        2,
+        0
+       ]
+      ],
+      [
+       "usecart",
+       "useCart",
+       "ui",
+       [
+        "src/hooks/useCart.ts",
+        4,
+        7,
+        "useCart",
+        1,
+        0,
+        0
+       ]
+      ]
+     ],
+     "links": [
+      [
+       "cart",
+       "usecart",
+       "calls useCart"
+      ]
+     ]
+    },
+    {
+     "id": "server-actions",
+     "name": "Server actions",
+     "kind": "gate",
+     "cell": [
+      1,
+      0
+     ],
+     "ports": null,
+     "files": [
+      "src/middleware.ts"
+     ],
+     "tests": [
+      [],
+      []
+     ],
+     "db": [],
+     "pieces": [
+      [
+       "middleware",
+       "middleware",
+       "process",
+       [
+        "src/middleware.ts",
+        1,
+        3,
+        "middleware",
+        0,
+        0,
+        0
+       ]
+      ]
+     ],
+     "links": []
+    },
+    {
+     "id": "logic",
+     "name": "Logic",
+     "kind": "process",
+     "cell": [
+      2,
+      0
+     ],
+     "ports": null,
+     "files": [
+      "src/lib/dates.ts",
+      "src/lib/format.ts",
+      "src/lib/pricing.ts"
+     ],
+     "tests": [
+      [
+       "src/__tests__/pricing.test.ts"
+      ],
+      []
+     ],
+     "db": [],
+     "pieces": [
+      [
+       "format",
+       "format",
+       "process",
+       [
+        "src/lib/dates.ts",
+        2,
+        4,
+        "format",
+        1,
+        0,
+        0
+       ]
+      ],
+      [
+       "format-2",
+       "format",
+       "process",
+       [
+        "src/lib/format.ts",
+        2,
+        4,
+        "format",
+        2,
+        0,
+        0
+       ]
+      ],
+      [
+       "total",
+       "total",
+       "process",
+       [
+        "src/lib/pricing.ts",
+        8,
+        10,
+        "total",
+        1,
+        1,
+        0
+       ]
+      ],
+      [
+       "legacyprice",
+       "legacyPrice",
+       "process",
+       [
+        "src/lib/pricing.ts",
+        12,
+        14,
+        "legacyPrice",
+        0,
+        1,
+        0
+       ]
+      ],
+      [
+       "pricelist",
+       "PriceList",
+       "process",
+       [
+        "src/lib/pricing.ts",
+        16,
+        21,
+        "PriceList",
+        0,
+        0,
+        0
+       ]
+      ]
+     ],
+     "links": [
+      [
+       "legacyprice",
+       "format-2",
+       "calls format"
+      ]
+     ]
+    }
+   ],
+   "links": [
+    [
+     "pages",
+     "logic",
+     1,
+     "calls format"
+    ]
+   ]
+  },
+  {
+   "id": "dock",
+   "layer": "dock",
+   "name": "Database (Prisma)",
+   "short": "Database",
+   "zones": [],
+   "parts": [
+    {
+     "id": "orders",
+     "name": "Orders",
+     "kind": null,
+     "cell": [
+      null,
+      null
+     ],
+     "ports": [
+      1
+     ],
+     "files": [],
+     "tests": null,
+     "db": null,
+     "pieces": [],
+     "links": []
+    },
+    {
+     "id": "products",
+     "name": "Products",
+     "kind": null,
+     "cell": [
+      null,
+      null
+     ],
+     "ports": [
+      2
+     ],
+     "files": [],
+     "tests": null,
+     "db": null,
+     "pieces": [],
+     "links": []
+    },
+    {
+     "id": "unused",
+     "name": "Not used in src",
+     "kind": null,
+     "cell": [
+      null,
+      null
+     ],
+     "ports": [
+      3
+     ],
+     "files": [],
+     "tests": null,
+     "db": null,
+     "pieces": [],
+     "links": []
+    }
+   ],
+   "links": []
+  }
+ ],
+ "flows": [
+  [
+   "orders",
+   "dock",
+   "reads, writes",
+   4,
+   "Orders: Order, AuditLog",
+   [
+    1
+   ]
+  ],
+  [
+   "orders",
+   "shared",
+   "uses",
+   1,
+   "total",
+   null
+  ],
+  [
+   "products",
+   "dock",
+   "reads",
+   2,
+   "Products: Product",
+   [
+    2
+   ]
+  ],
+  [
+   "products",
+   "orders",
+   "uses",
+   3,
+   "prisma, checkout",
+   null
+  ],
+  [
+   "products",
+   "shared",
+   "uses",
+   2,
+   "format, Cart",
+   null
+  ],
+  [
+   "shared",
+   "products",
+   "calls actions",
+   1,
+   "addToCart",
+   null
+  ]
+ ],
+ "journeys": [
+  [
+   "/products/[id] → Order",
+   "Products",
+   [
+    "products",
+    "shared",
+    "products",
+    "orders",
+    "P1"
+   ],
+   [
+    [
+     "src/app/(shop)/products/[id]/page.tsx",
+     5,
+     8,
+     "ProductPage",
+     "products/pages",
+     "products/pages/products-id",
+     0
+    ],
+    [
+     "src/components/Cart.tsx",
+     5,
+     8,
+     "Cart",
+     "shared/components",
+     "shared/components/cart",
+     0
+    ],
+    [
+     "src/app/actions/cart.ts",
+     10,
+     12,
+     "addToCart",
+     "products/server-actions",
+     "products/server-actions/addtocart",
+     0
+    ],
+    [
+     "src/lib/checkout.ts",
+     5,
+     12,
+     "checkout",
+     "orders/data-access",
+     "orders/data-access/checkout",
+     0
+    ],
+    [
+     "src/lib/checkout.ts",
+     8,
+     null,
+     "checkout",
+     null,
+     null,
+     1
+    ]
+   ]
+  ]
+ ],
+ "groups": [
+  [
+   1,
+   "orders",
+   "Orders",
+   [
+    "Customer",
+    "Order",
+    "OrderLine",
+    "AuditLog"
+   ],
+   [
+    [
+     "orders",
+     4,
+     "rw"
+    ]
+   ]
+  ],
+  [
+   2,
+   "products",
+   "Products",
+   [
+    "Product"
+   ],
+   [
+    [
+     "products",
+     2,
+     "r"
+    ]
+   ]
+  ],
+  [
+   3,
+   "unused",
+   "Not used in src",
+   [
+    "Coupon"
+   ],
+   []
+  ]
+ ],
+ "cmp": {
+  "bases": [
+   "dev",
+   "main"
+  ],
+  "def": 0,
+  "list": [
+   [
+    "dev",
+    "feature/docs",
+    [
+     [
+      "README.md",
+      "A"
+     ],
+     [
+      "src/app/docs/[[...slug]]/page.tsx",
+      "M"
+     ]
+    ],
+    [
+     [
+      "shared",
+      1,
+      [
+       "pages"
+      ]
+     ]
+    ],
+    1,
+    1,
+    [],
+    []
+   ],
+   [
+    "main",
+    "feature/docs",
+    [
+     [
+      "README.md",
+      "A"
+     ],
+     [
+      "src/app/docs/[[...slug]]/page.tsx",
+      "M"
+     ]
+    ],
+    [
+     [
+      "shared",
+      1,
+      [
+       "pages"
+      ]
+     ]
+    ],
+    1,
+    1,
+    [],
+    []
+   ],
+   [
+    "dev",
+    "feature/rename",
+    [
+     [
+      "prisma/schema.prisma",
+      "M"
+     ],
+     [
+      "src/__tests__/pricing.test.ts",
+      "M"
+     ],
+     [
+      "src/lib/checkout.ts",
+      "M"
+     ],
+     [
+      "src/lib/coupons.ts",
+      "A"
+     ],
+     [
+      "src/lib/pricing.ts",
+      "M"
+     ]
+    ],
+    [
+     [
+      "orders",
+      1,
+      [
+       "data-access"
+      ]
+     ],
+     [
+      "shared",
+      1,
+      [
+       "logic"
+      ]
+     ]
+    ],
+    3,
+    2,
+    [
+     1
+    ],
+    [
+     [
+      "orders",
+      [
+       [
+        "products",
+        1
+       ]
+      ]
+     ]
+    ]
+   ],
+   [
+    "main",
+    "feature/rename",
+    [
+     [
+      "prisma/schema.prisma",
+      "M"
+     ],
+     [
+      "src/__tests__/pricing.test.ts",
+      "M"
+     ],
+     [
+      "src/lib/checkout.ts",
+      "M"
+     ],
+     [
+      "src/lib/coupons.ts",
+      "A"
+     ],
+     [
+      "src/lib/pricing.ts",
+      "M"
+     ]
+    ],
+    [
+     [
+      "orders",
+      1,
+      [
+       "data-access"
+      ]
+     ],
+     [
+      "shared",
+      1,
+      [
+       "logic"
+      ]
+     ]
+    ],
+    3,
+    2,
+    [
+     1
+    ],
+    [
+     [
+      "orders",
+      [
+       [
+        "products",
+        1
+       ]
+      ]
+     ]
+    ]
+   ],
+   [
+    "main",
+    "dev",
+    [],
+    [],
+    0,
+    0,
+    [],
+    []
+   ],
+   [
+    "dev",
+    "main",
+    [],
+    [],
+    0,
+    0,
+    [],
+    []
+   ]
+  ]
+ },
+ "rail": {
+  "x": 0,
+  "y": 238,
+  "w": 900,
+  "d": 72
+ },
+ "railTxt": "DATABASE · 3 GROUPS · 6 MODELS",
+ "ports": [
+  {
+   "n": 2,
+   "x": 367,
+   "mod": "products",
+   "name": "Products"
+  },
+  {
+   "n": 3,
+   "x": 450,
+   "mod": null,
+   "name": "Not used in src"
+  },
+  {
+   "n": 1,
+   "x": 703,
+   "mod": "orders",
+   "name": "Orders"
+  }
+ ],
+ "place": [
+  [
+   "home",
+   [
+    22,
+    44,
+    190,
+    160,
+    52
+   ]
+  ],
+  [
+   "orders",
+   [
+    566,
+    44,
+    274,
+    160,
+    55
+   ]
+  ],
+  [
+   "products",
+   [
+    230,
+    44,
+    274,
+    160,
+    55
+   ]
+  ],
+  [
+   "shared",
+   [
+    22,
+    372,
+    274,
+    160,
+    56
+   ]
+  ]
+ ],
+ "districts": [
+  {
+   "layer": "area-top",
+   "x": 0,
+   "y": 0,
+   "w": 526,
+   "d": 220
+  },
+  {
+   "layer": "area-api",
+   "x": 544,
+   "y": 0,
+   "w": 356,
+   "d": 220
+  },
+  {
+   "layer": "area-shared",
+   "x": 0,
+   "y": 328,
+   "w": 900,
+   "d": 220
+  }
+ ],
+ "plate": [
+  900,
+  548
+ ],
+ "demoOpen": "products",
+ "totals": {
+  "files": 22,
+  "lines": 174,
+  "symbols": 32,
+  "models": 6,
+  "edges": 19
+ }
+}

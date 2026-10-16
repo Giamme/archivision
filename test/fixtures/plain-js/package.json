@@ -1,0 +1,6 @@
+{
+  "name": "plain-js",
+  "private": true,
+  "dependencies": { "next": "15.0.0", "@prisma/client": "6.0.0" },
+  "devDependencies": { "vitest": "3.0.0", "@playwright/test": "1.50.0" }
+}

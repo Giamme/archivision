@@ -1,0 +1,840 @@
+{
+ "mode": "repo",
+ "layers": [
+  [
+   "area-api",
+   "API only"
+  ],
+  [
+   "area-shared",
+   "Shared code"
+  ],
+  [
+   "dock",
+   "Database"
+  ]
+ ],
+ "blocks": [
+  {
+   "id": "items",
+   "layer": "area-api",
+   "name": "Items",
+   "short": "Items",
+   "zones": [
+    [
+     "Screens",
+     [
+      "pages",
+      "components"
+     ]
+    ],
+    [
+     "Entry points",
+     [
+      "server-actions",
+      "api-routes"
+     ]
+    ],
+    [
+     "Logic",
+     [
+      "config"
+     ]
+    ],
+    [
+     "Data",
+     [
+      "data-access"
+     ]
+    ]
+   ],
+   "parts": [
+    {
+     "id": "pages",
+     "name": "Pages",
+     "kind": "ui",
+     "cell": [
+      0,
+      0
+     ],
+     "ports": null,
+     "files": [
+      "src/app/page.jsx"
+     ],
+     "tests": [
+      [],
+      [
+       "e2e/home.spec.js"
+      ]
+     ],
+     "db": [],
+     "pieces": [
+      [
+       "x",
+       "/",
+       "ui",
+       [
+        "src/app/page.jsx",
+        5,
+        13,
+        "HomePage",
+        0,
+        2,
+        1
+       ]
+      ]
+     ],
+     "links": []
+    },
+    {
+     "id": "components",
+     "name": "Components",
+     "kind": "ui",
+     "cell": [
+      0,
+      1
+     ],
+     "ports": null,
+     "files": [
+      "src/components/ItemList.jsx"
+     ],
+     "tests": [
+      [],
+      []
+     ],
+     "db": [],
+     "pieces": [
+      [
+       "itemlist",
+       "ItemList",
+       "ui",
+       [
+        "src/components/ItemList.jsx",
+        5,
+        7,
+        "ItemList",
+        1,
+        1,
+        0
+       ]
+      ],
+      [
+       "itemrow",
+       "ItemRow",
+       "ui",
+       [
+        "src/components/ItemList.jsx",
+        1,
+        3,
+        "ItemRow",
+        1,
+        0,
+        0
+       ]
+      ]
+     ],
+     "links": [
+      [
+       "itemlist",
+       "itemrow",
+       "calls ItemRow"
+      ]
+     ]
+    },
+    {
+     "id": "server-actions",
+     "name": "Server actions",
+     "kind": "gate",
+     "cell": [
+      1,
+      0
+     ],
+     "ports": null,
+     "files": [
+      "src/app/actions/items.js"
+     ],
+     "tests": [
+      [],
+      []
+     ],
+     "db": [],
+     "pieces": [
+      [
+       "createitem",
+       "createItem",
+       "gate",
+       [
+        "src/app/actions/items.js",
+        5,
+        9,
+        "createItem",
+        1,
+        2,
+        0
+       ]
+      ]
+     ],
+     "links": []
+    },
+    {
+     "id": "api-routes",
+     "name": "API routes",
+     "kind": "endpoint",
+     "cell": [
+      1,
+      1
+     ],
+     "ports": null,
+     "files": [
+      "src/app/api/items/route.js"
+     ],
+     "tests": [
+      [],
+      []
+     ],
+     "db": [],
+     "pieces": [
+      [
+       "get-api-items",
+       "GET /api/items",
+       "endpoint",
+       [
+        "src/app/api/items/route.js",
+        3,
+        5,
+        "GET",
+        0,
+        1,
+        0
+       ]
+      ],
+      [
+       "delete-api-items",
+       "DELETE /api/items",
+       "endpoint",
+       [
+        "src/app/api/items/route.js",
+        7,
+        10,
+        "DELETE",
+        0,
+        1,
+        0
+       ]
+      ]
+     ],
+     "links": []
+    },
+    {
+     "id": "config",
+     "name": "Config",
+     "kind": "config",
+     "cell": [
+      2,
+      0
+     ],
+     "ports": null,
+     "files": [
+      "src/lib/db.js"
+     ],
+     "tests": [
+      [],
+      []
+     ],
+     "db": [],
+     "pieces": [
+      [
+       "prisma",
+       "prisma",
+       "config",
+       [
+        "src/lib/db.js",
+        3,
+        3,
+        "prisma",
+        5,
+        0,
+        0
+       ]
+      ]
+     ],
+     "links": []
+    },
+    {
+     "id": "data-access",
+     "name": "Data access",
+     "kind": "store",
+     "cell": [
+      3,
+      0
+     ],
+     "ports": null,
+     "files": [
+      "src/lib/store.js"
+     ],
+     "tests": [
+      [],
+      []
+     ],
+     "db": [
+      [
+       "Item",
+       "rw",
+       1
+      ]
+     ],
+     "pieces": [
+      [
+       "listitems",
+       "listItems",
+       "process",
+       [
+        "src/lib/store.js",
+        5,
+        8,
+        "listItems",
+        2,
+        1,
+        1
+       ]
+      ],
+      [
+       "additem",
+       "addItem",
+       "process",
+       [
+        "src/lib/store.js",
+        10,
+        12,
+        "addItem",
+        1,
+        0,
+        1
+       ]
+      ],
+      [
+       "removeitem",
+       "removeItem",
+       "process",
+       [
+        "src/lib/store.js",
+        14,
+        16,
+        "removeItem",
+        1,
+        0,
+        1
+       ]
+      ],
+      [
+       "countitems",
+       "countItems",
+       "process",
+       [
+        "src/lib/store.js",
+        18,
+        20,
+        "countItems",
+        0,
+        0,
+        1
+       ]
+      ]
+     ],
+     "links": []
+    }
+   ],
+   "links": [
+    [
+     "api-routes",
+     "data-access",
+     2,
+     "calls listItems, removeItem"
+    ],
+    [
+     "data-access",
+     "config",
+     4,
+     "uses prisma"
+    ],
+    [
+     "pages",
+     "components",
+     1,
+     "calls ItemList"
+    ],
+    [
+     "pages",
+     "data-access",
+     1,
+     "calls listItems"
+    ],
+    [
+     "pages",
+     "server-actions",
+     1,
+     "uses createItem"
+    ],
+    [
+     "server-actions",
+     "data-access",
+     1,
+     "calls addItem"
+    ]
+   ]
+  },
+  {
+   "id": "shared",
+   "layer": "area-shared",
+   "name": "Shared core",
+   "short": "Shared core",
+   "zones": [
+    [
+     "Logic",
+     [
+      "logic"
+     ]
+    ],
+    [
+     "Data",
+     [
+      "data-access"
+     ]
+    ]
+   ],
+   "parts": [
+    {
+     "id": "logic",
+     "name": "Logic",
+     "kind": "process",
+     "cell": [
+      0,
+      0
+     ],
+     "ports": null,
+     "files": [
+      "src/lib/format.cjs"
+     ],
+     "tests": [
+      [
+       "tests/store.test.js"
+      ],
+      []
+     ],
+     "db": [],
+     "pieces": [
+      [
+       "formatprice",
+       "formatPrice",
+       "process",
+       [
+        "src/lib/format.cjs",
+        6,
+        6,
+        "formatPrice",
+        1,
+        1,
+        0
+       ]
+      ],
+      [
+       "cents",
+       "cents",
+       "process",
+       [
+        "src/lib/format.cjs",
+        1,
+        3,
+        "cents",
+        1,
+        0,
+        0
+       ]
+      ]
+     ],
+     "links": [
+      [
+       "formatprice",
+       "cents",
+       "calls cents"
+      ]
+     ]
+    },
+    {
+     "id": "data-access",
+     "name": "Data access",
+     "kind": "store",
+     "cell": [
+      1,
+      0
+     ],
+     "ports": null,
+     "files": [
+      "src/lib/tags.mjs"
+     ],
+     "tests": [
+      [],
+      []
+     ],
+     "db": [
+      [
+       "Tag",
+       "w",
+       2
+      ]
+     ],
+     "pieces": [
+      [
+       "tagitem",
+       "tagItem",
+       "process",
+       [
+        "src/lib/tags.mjs",
+        3,
+        5,
+        "tagItem",
+        1,
+        0,
+        1
+       ]
+      ]
+     ],
+     "links": []
+    }
+   ],
+   "links": []
+  },
+  {
+   "id": "dock",
+   "layer": "dock",
+   "name": "Database (Prisma)",
+   "short": "Database",
+   "zones": [],
+   "parts": [
+    {
+     "id": "items",
+     "name": "Items",
+     "kind": null,
+     "cell": [
+      null,
+      null
+     ],
+     "ports": [
+      1
+     ],
+     "files": [],
+     "tests": null,
+     "db": null,
+     "pieces": [],
+     "links": []
+    },
+    {
+     "id": "shared",
+     "name": "Shared core",
+     "kind": null,
+     "cell": [
+      null,
+      null
+     ],
+     "ports": [
+      2
+     ],
+     "files": [],
+     "tests": null,
+     "db": null,
+     "pieces": [],
+     "links": []
+    }
+   ],
+   "links": []
+  }
+ ],
+ "flows": [
+  [
+   "items",
+   "dock",
+   "reads, writes",
+   4,
+   "Items: Item",
+   [
+    1
+   ]
+  ],
+  [
+   "items",
+   "shared",
+   "uses",
+   2,
+   "formatPrice, tagItem",
+   null
+  ],
+  [
+   "shared",
+   "dock",
+   "writes",
+   1,
+   "Shared core: Tag",
+   [
+    2
+   ]
+  ],
+  [
+   "shared",
+   "items",
+   "uses",
+   1,
+   "prisma",
+   null
+  ]
+ ],
+ "journeys": [
+  [
+   "/ → Item",
+   "Items",
+   [
+    "items",
+    "items",
+    "items",
+    "P1"
+   ],
+   [
+    [
+     "src/app/page.jsx",
+     5,
+     13,
+     "HomePage",
+     "items/pages",
+     "items/pages/x",
+     0
+    ],
+    [
+     "src/app/actions/items.js",
+     5,
+     9,
+     "createItem",
+     "items/server-actions",
+     "items/server-actions/createitem",
+     0
+    ],
+    [
+     "src/lib/store.js",
+     10,
+     12,
+     "addItem",
+     "items/data-access",
+     "items/data-access/additem",
+     0
+    ],
+    [
+     "src/lib/store.js",
+     11,
+     null,
+     "addItem",
+     null,
+     null,
+     1
+    ]
+   ]
+  ]
+ ],
+ "groups": [
+  [
+   1,
+   "items",
+   "Items",
+   [
+    "Item"
+   ],
+   [
+    [
+     "items",
+     4,
+     "rw"
+    ]
+   ]
+  ],
+  [
+   2,
+   "shared",
+   "Shared core",
+   [
+    "Tag"
+   ],
+   [
+    [
+     "shared",
+     1,
+     "w"
+    ]
+   ]
+  ]
+ ],
+ "cmp": {
+  "bases": [
+   "dev",
+   "main"
+  ],
+  "def": 0,
+  "list": [
+   [
+    "dev",
+    "feature/count",
+    [
+     [
+      "src/lib/format.cjs",
+      "M"
+     ],
+     [
+      "src/lib/store.js",
+      "M"
+     ]
+    ],
+    [
+     [
+      "items",
+      1,
+      [
+       "data-access"
+      ]
+     ],
+     [
+      "shared",
+      1,
+      [
+       "logic"
+      ]
+     ]
+    ],
+    2,
+    2,
+    [],
+    []
+   ],
+   [
+    "main",
+    "feature/count",
+    [
+     [
+      "src/lib/format.cjs",
+      "M"
+     ],
+     [
+      "src/lib/store.js",
+      "M"
+     ]
+    ],
+    [
+     [
+      "items",
+      1,
+      [
+       "data-access"
+      ]
+     ],
+     [
+      "shared",
+      1,
+      [
+       "logic"
+      ]
+     ]
+    ],
+    2,
+    2,
+    [],
+    []
+   ],
+   [
+    "main",
+    "dev",
+    [],
+    [],
+    0,
+    0,
+    [],
+    []
+   ],
+   [
+    "dev",
+    "main",
+    [],
+    [],
+    0,
+    0,
+    [],
+    []
+   ]
+  ]
+ },
+ "rail": {
+  "x": 0,
+  "y": 238,
+  "w": 900,
+  "d": 72
+ },
+ "railTxt": "DATABASE · 2 GROUPS · 2 MODELS",
+ "ports": [
+  {
+   "n": 1,
+   "x": 204,
+   "mod": "items",
+   "name": "Items"
+  },
+  {
+   "n": 2,
+   "x": 543,
+   "mod": "shared",
+   "name": "Shared core"
+  }
+ ],
+ "place": [
+  [
+   "items",
+   [
+    22,
+    44,
+    364,
+    160,
+    60
+   ]
+  ],
+  [
+   "shared",
+   [
+    448,
+    44,
+    190,
+    160,
+    53
+   ]
+  ]
+ ],
+ "districts": [
+  {
+   "layer": "area-api",
+   "x": 0,
+   "y": 0,
+   "w": 408,
+   "d": 220
+  },
+  {
+   "layer": "area-shared",
+   "x": 426,
+   "y": 0,
+   "w": 474,
+   "d": 220
+  }
+ ],
+ "plate": [
+  900,
+  310
+ ],
+ "demoOpen": "items",
+ "totals": {
+  "files": 8,
+  "lines": 87,
+  "symbols": 14,
+  "models": 2,
+  "edges": 13
+ }
+}

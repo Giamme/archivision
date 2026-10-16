@@ -1,0 +1,23 @@
+{
+  "name": "archivision",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Archivision: a 3D iso map of a codebase (parsed, no AI) or of an architecture (from documents and diagrams, with AI), linked to the code.",
+  "license": "MIT",
+  "type": "commonjs",
+  "bin": { "archivision": "bin/archivision.js", "birdview": "bin/archivision.js" },
+  "main": "lib/index.js",
+  "repository": { "type": "git", "url": "https://github.com/Giamme/archivision.git" },
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "check": "node test/check-page.mjs"
+  },
+  "dependencies": {
+    "typescript": "5.9.3"
+  },
+  "devDependencies": {
+    "jsdom": "26.1.0",
+    "three": "0.160.0"
+  }
+}

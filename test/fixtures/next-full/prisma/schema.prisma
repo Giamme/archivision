@@ -1,0 +1,45 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Customer {
+  id     String  @id
+  email  String  @unique
+  orders Order[]
+}
+
+model Product {
+  id    String      @id
+  name  String
+  price Int
+  lines OrderLine[]
+}
+
+model Order {
+  id         String      @id
+  customerId String
+  status     String
+  customer   Customer    @relation(fields: [customerId], references: [id])
+  lines      OrderLine[]
+}
+
+model OrderLine {
+  id        String  @id
+  orderId   String
+  productId String
+  qty       Int
+  order     Order   @relation(fields: [orderId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
+}
+
+model AuditLog {
+  id      String @id
+  action  String
+  orderId String
+}
+
+model Coupon {
+  code    String @id
+  percent Int
+}

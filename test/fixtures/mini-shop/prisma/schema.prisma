@@ -1,0 +1,27 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id    String @id
+  sku   String @unique
+  name  String
+  stock Int
+  lines OrderLine[]
+}
+
+model Order {
+  id    String      @id
+  email String
+  lines OrderLine[]
+}
+
+model OrderLine {
+  id        String  @id
+  orderId   String
+  productId String
+  qty       Int
+  order     Order   @relation(fields: [orderId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
+}

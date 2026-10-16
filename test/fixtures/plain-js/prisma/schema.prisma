@@ -1,0 +1,18 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Item {
+  id    String @id
+  name  String
+  price Int
+  tags  Tag[]
+}
+
+model Tag {
+  id     String @id
+  label  String
+  itemId String
+  item   Item   @relation(fields: [itemId], references: [id])
+}

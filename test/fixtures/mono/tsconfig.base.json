@@ -1,0 +1,1 @@
+{ "compilerOptions": { "strict": true, "jsx": "preserve", "baseUrl": ".", "paths": { "@mono/core": ["packages/core/src/index.ts"], "@mono/ui": ["packages/ui/src/index.ts"] } } }

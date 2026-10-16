@@ -1,0 +1,331 @@
+{
+ "generator": "automap",
+ "commit": "3e26a49e0c644f3a9e6d3d349b61b11643132f2d",
+ "intro": "next-full: 22 files grouped by their routes, names and imports, with no AI. Open a block to see its parts in the order requests flow, then a part to reach its functions and files.",
+ "layers": [
+  {
+   "id": "area-top",
+   "name": "Top-level pages",
+   "blurb": "2 blocks",
+   "tip": "Features whose pages live under /."
+  },
+  {
+   "id": "area-api",
+   "name": "API only",
+   "blurb": "1 blocks",
+   "tip": "Features that only have API routes."
+  },
+  {
+   "id": "area-shared",
+   "name": "Shared code",
+   "blurb": "1 blocks",
+   "tip": "Code that no single feature owns: UI kit, utilities, auth and clients used across the app."
+  }
+ ],
+ "modules": [
+  {
+   "id": "home",
+   "layer": "area-top",
+   "name": "Home",
+   "short": "Home",
+   "role": "1 page",
+   "tip": "Pages under / (1).",
+   "zones": [
+    {
+     "name": "Screens",
+     "tip": "Pages and components the user sees.",
+     "parts": [
+      "pages"
+     ]
+    }
+   ],
+   "parts": [
+    {
+     "id": "pages",
+     "name": "Pages",
+     "kind": "ui",
+     "what": "5 files in app",
+     "tip": "Pages: /.",
+     "globs": [
+      "src/app/(shop)/layout.tsx",
+      "src/app/error.tsx",
+      "src/app/layout.tsx",
+      "src/app/loading.tsx",
+      "src/app/page.tsx"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "products",
+   "layer": "area-top",
+   "name": "Products",
+   "short": "Products",
+   "role": "2 pages · 1 server-action file",
+   "tip": "Pages under /products (2). Reads Product. Used most by Shared.",
+   "zones": [
+    {
+     "name": "Screens",
+     "tip": "Pages and components the user sees.",
+     "parts": [
+      "pages"
+     ]
+    },
+    {
+     "name": "Entry points",
+     "tip": "Server actions and API routes: where requests come in.",
+     "parts": [
+      "server-actions"
+     ]
+    },
+    {
+     "name": "Data",
+     "tip": "Code that reads and writes the database.",
+     "parts": [
+      "data-access"
+     ]
+    }
+   ],
+   "parts": [
+    {
+     "id": "pages",
+     "name": "Pages",
+     "kind": "ui",
+     "what": "2 files in app/(shop)/products",
+     "tip": "Pages: /products/[id], /products, /products.",
+     "globs": [
+      "src/app/(shop)/products/**"
+     ]
+    },
+    {
+     "id": "server-actions",
+     "name": "Server actions",
+     "kind": "gate",
+     "what": "1 file in app/actions",
+     "tip": "Actions: addToCart.",
+     "globs": [
+      "src/app/actions/cart.ts"
+     ]
+    },
+    {
+     "id": "data-access",
+     "name": "Data access",
+     "kind": "store",
+     "what": "1 file in lib",
+     "tip": "Exports: listProducts, getProduct. Reads Product.",
+     "globs": [
+      "src/lib/catalog.ts"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "orders",
+   "layer": "area-api",
+   "name": "Orders",
+   "short": "Orders",
+   "role": "2 API routes",
+   "tip": "Code in src. Writes Order, AuditLog. Used most by Products.",
+   "zones": [
+    {
+     "name": "Entry points",
+     "tip": "Server actions and API routes: where requests come in.",
+     "parts": [
+      "api-routes"
+     ]
+    },
+    {
+     "name": "Logic",
+     "tip": "Functions that decide and compute.",
+     "parts": [
+      "config"
+     ]
+    },
+    {
+     "name": "Data",
+     "tip": "Code that reads and writes the database.",
+     "parts": [
+      "data-access"
+     ]
+    }
+   ],
+   "parts": [
+    {
+     "id": "api-routes",
+     "name": "API routes",
+     "kind": "endpoint",
+     "what": "2 files in app/api/orders",
+     "tip": "Handles: DELETE /api/orders/[id], GET /api/orders, POST /api/orders.",
+     "globs": [
+      "src/app/api/**"
+     ]
+    },
+    {
+     "id": "config",
+     "name": "Config",
+     "kind": "config",
+     "what": "1 file in lib",
+     "tip": "1 files.",
+     "globs": [
+      "src/lib/db.ts"
+     ]
+    },
+    {
+     "id": "data-access",
+     "name": "Data access",
+     "kind": "store",
+     "what": "1 file in lib",
+     "tip": "Exports: checkout, cancelOrder, listOrders. Writes Order, AuditLog. Reads Order.",
+     "globs": [
+      "src/lib/checkout.ts"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "shared",
+   "layer": "area-shared",
+   "name": "Shared core",
+   "short": "Shared core",
+   "role": "3 pages · 1 server-action file",
+   "tip": "Pages under / (3). Used most by Products, Orders.",
+   "zones": [
+    {
+     "name": "Screens",
+     "tip": "Pages and components the user sees.",
+     "parts": [
+      "pages",
+      "components"
+     ]
+    },
+    {
+     "name": "Entry points",
+     "tip": "Server actions and API routes: where requests come in.",
+     "parts": [
+      "server-actions"
+     ]
+    },
+    {
+     "name": "Logic",
+     "tip": "Functions that decide and compute.",
+     "parts": [
+      "logic"
+     ]
+    }
+   ],
+   "parts": [
+    {
+     "id": "pages",
+     "name": "Pages",
+     "kind": "ui",
+     "what": "3 files in app",
+     "tip": "Pages: /login, /blog/[...slug], /docs/[[...slug]].",
+     "globs": [
+      "src/app/@modal/login/page.tsx",
+      "src/app/blog/[...slug]/page.tsx",
+      "src/app/docs/[[...slug]]/page.tsx"
+     ]
+    },
+    {
+     "id": "components",
+     "name": "Components",
+     "kind": "ui",
+     "what": "2 files in src",
+     "tip": "Exports: Cart, useCart.",
+     "globs": [
+      "src/components/Cart.tsx",
+      "src/hooks/useCart.ts"
+     ]
+    },
+    {
+     "id": "server-actions",
+     "name": "Server actions",
+     "kind": "gate",
+     "what": "1 file in src",
+     "tip": "1 files.",
+     "globs": [
+      "src/middleware.ts"
+     ]
+    },
+    {
+     "id": "logic",
+     "name": "Logic",
+     "kind": "process",
+     "what": "3 files in lib",
+     "tip": "Exports: format, format, total, legacyPrice +1.",
+     "globs": [
+      "src/lib/dates.ts",
+      "src/lib/format.ts",
+      "src/lib/pricing.ts"
+     ]
+    }
+   ]
+  }
+ ],
+ "dbGroups": [
+  {
+   "id": "orders",
+   "name": "Orders",
+   "tip": "Tables written or read mostly by «Orders».",
+   "models": [
+    "Customer",
+    "Order",
+    "OrderLine",
+    "AuditLog"
+   ]
+  },
+  {
+   "id": "products",
+   "name": "Products",
+   "tip": "Tables written or read mostly by «Products».",
+   "models": [
+    "Product"
+   ]
+  },
+  {
+   "id": "unused",
+   "name": "Not used in src",
+   "tip": "Models no code in src reads or writes.",
+   "models": [
+    "Coupon"
+   ]
+  }
+ ],
+ "journeys": [
+  {
+   "name": "/products/[id] → Order",
+   "group": "Products",
+   "caption": "Follows the calls from the page /products/[id] to the code that writes Order, AuditLog.",
+   "steps": [
+    {
+     "module": "products",
+     "part": "pages",
+     "symbol": "ProductPage",
+     "file": "src/app/(shop)/products/[id]/page.tsx",
+     "note": "The page /products/[id] renders Cart."
+    },
+    {
+     "module": "shared",
+     "part": "components",
+     "symbol": "Cart",
+     "file": "src/components/Cart.tsx",
+     "note": "Component Cart calls addToCart."
+    },
+    {
+     "module": "products",
+     "part": "server-actions",
+     "symbol": "addToCart",
+     "file": "src/app/actions/cart.ts",
+     "note": "Server action addToCart calls checkout."
+    },
+    {
+     "module": "orders",
+     "part": "data-access",
+     "symbol": "checkout",
+     "file": "src/lib/checkout.ts",
+     "note": "Function checkout writes Order, AuditLog."
+    }
+   ]
+  }
+ ]
+}

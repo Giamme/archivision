@@ -1,0 +1,204 @@
+{
+ "generator": "automap",
+ "commit": "9ae6fc76cb4f1217d8486915f97c07d8efdd3beb",
+ "intro": "mini-shop: 10 files grouped by their routes, names and imports, with no AI. Open a block to see its parts in the order requests flow, then a part to reach its functions and files.",
+ "layers": [
+  {
+   "id": "area-top",
+   "name": "Top-level pages",
+   "blurb": "1 blocks",
+   "tip": "Features whose pages live under /."
+  },
+  {
+   "id": "area-shared",
+   "name": "Shared code",
+   "blurb": "1 blocks",
+   "tip": "Code that no single feature owns: UI kit, utilities, auth and clients used across the app."
+  }
+ ],
+ "modules": [
+  {
+   "id": "orders",
+   "layer": "area-top",
+   "name": "Orders",
+   "short": "Orders",
+   "role": "2 pages · 1 server-action file · 1 API route",
+   "tip": "Pages under / (2). Writes Order, Product.",
+   "zones": [
+    {
+     "name": "Screens",
+     "tip": "Pages and components the user sees.",
+     "parts": [
+      "pages",
+      "components"
+     ]
+    },
+    {
+     "name": "Entry points",
+     "tip": "Server actions and API routes: where requests come in.",
+     "parts": [
+      "server-actions",
+      "api-routes"
+     ]
+    },
+    {
+     "name": "Logic",
+     "tip": "Functions that decide and compute.",
+     "parts": [
+      "config"
+     ]
+    },
+    {
+     "name": "Data",
+     "tip": "Code that reads and writes the database.",
+     "parts": [
+      "data-access"
+     ]
+    }
+   ],
+   "parts": [
+    {
+     "id": "pages",
+     "name": "Pages",
+     "kind": "ui",
+     "what": "2 files in app",
+     "tip": "Pages: /orders, /products.",
+     "globs": [
+      "src/app/orders/page.tsx",
+      "src/app/products/page.tsx"
+     ]
+    },
+    {
+     "id": "components",
+     "name": "Components",
+     "kind": "ui",
+     "what": "1 file in components",
+     "tip": "Exports: OrderForm.",
+     "globs": [
+      "src/components/OrderForm.tsx"
+     ]
+    },
+    {
+     "id": "server-actions",
+     "name": "Server actions",
+     "kind": "gate",
+     "what": "1 file in app/actions",
+     "tip": "Actions: submitOrder.",
+     "globs": [
+      "src/app/actions/orders.ts"
+     ]
+    },
+    {
+     "id": "api-routes",
+     "name": "API routes",
+     "kind": "endpoint",
+     "what": "1 file in app/api/stock",
+     "tip": "Handles: POST /api/stock.",
+     "globs": [
+      "src/app/api/stock/route.ts"
+     ]
+    },
+    {
+     "id": "config",
+     "name": "Config",
+     "kind": "config",
+     "what": "1 file in lib",
+     "tip": "1 files.",
+     "globs": [
+      "src/lib/db.ts"
+     ]
+    },
+    {
+     "id": "data-access",
+     "name": "Data access",
+     "kind": "store",
+     "what": "2 files in lib",
+     "tip": "Exports: createOrder, listOrders, discount, listProducts +1. Writes Order, Product. Reads Order, Product.",
+     "globs": [
+      "src/lib/orders.ts",
+      "src/lib/products.ts"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "shared",
+   "layer": "area-shared",
+   "name": "Shared core",
+   "short": "Shared core",
+   "role": "1 page",
+   "tip": "Pages under / (1).",
+   "zones": [
+    {
+     "name": "Screens",
+     "tip": "Pages and components the user sees.",
+     "parts": [
+      "pages"
+     ]
+    }
+   ],
+   "parts": [
+    {
+     "id": "pages",
+     "name": "Pages",
+     "kind": "ui",
+     "what": "2 files in app",
+     "tip": "Pages: /.",
+     "globs": [
+      "src/app/layout.tsx",
+      "src/app/page.tsx"
+     ]
+    }
+   ]
+  }
+ ],
+ "dbGroups": [
+  {
+   "id": "orders",
+   "name": "Orders",
+   "tip": "Tables written or read mostly by «Orders».",
+   "models": [
+    "Product",
+    "Order",
+    "OrderLine"
+   ]
+  }
+ ],
+ "journeys": [
+  {
+   "name": "/orders → Order",
+   "group": "Orders",
+   "caption": "Follows the calls from the page /orders to the code that writes Order.",
+   "steps": [
+    {
+     "module": "orders",
+     "part": "pages",
+     "symbol": "OrdersPage",
+     "file": "src/app/orders/page.tsx",
+     "note": "The page /orders renders OrderForm."
+    },
+    {
+     "module": "orders",
+     "part": "components",
+     "symbol": "OrderForm",
+     "file": "src/components/OrderForm.tsx",
+     "note": "Component OrderForm calls submitOrder."
+    },
+    {
+     "module": "orders",
+     "part": "server-actions",
+     "symbol": "submitOrder",
+     "file": "src/app/actions/orders.ts",
+     "note": "Server action submitOrder calls createOrder."
+    },
+    {
+     "module": "orders",
+     "part": "data-access",
+     "symbol": "createOrder",
+     "file": "src/lib/orders.ts",
+     "note": "Function createOrder writes Order."
+    }
+   ]
+  }
+ ]
+}

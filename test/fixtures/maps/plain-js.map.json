@@ -1,0 +1,217 @@
+{
+ "generator": "automap",
+ "commit": "e0bc22ed67a9fc0c1ef07696212677196595736c",
+ "intro": "plain-js: 8 files grouped by their routes, names and imports, with no AI. Open a block to see its parts in the order requests flow, then a part to reach its functions and files.",
+ "layers": [
+  {
+   "id": "area-api",
+   "name": "API only",
+   "blurb": "1 blocks",
+   "tip": "Features that only have API routes."
+  },
+  {
+   "id": "area-shared",
+   "name": "Shared code",
+   "blurb": "1 blocks",
+   "tip": "Code that no single feature owns: UI kit, utilities, auth and clients used across the app."
+  }
+ ],
+ "modules": [
+  {
+   "id": "items",
+   "layer": "area-api",
+   "name": "Items",
+   "short": "Items",
+   "role": "1 page · 1 server-action file · 1 API route",
+   "tip": "Pages under / (1). Writes Item. Used most by Shared.",
+   "zones": [
+    {
+     "name": "Screens",
+     "tip": "Pages and components the user sees.",
+     "parts": [
+      "pages",
+      "components"
+     ]
+    },
+    {
+     "name": "Entry points",
+     "tip": "Server actions and API routes: where requests come in.",
+     "parts": [
+      "server-actions",
+      "api-routes"
+     ]
+    },
+    {
+     "name": "Logic",
+     "tip": "Functions that decide and compute.",
+     "parts": [
+      "config"
+     ]
+    },
+    {
+     "name": "Data",
+     "tip": "Code that reads and writes the database.",
+     "parts": [
+      "data-access"
+     ]
+    }
+   ],
+   "parts": [
+    {
+     "id": "pages",
+     "name": "Pages",
+     "kind": "ui",
+     "what": "1 file in app",
+     "tip": "Pages: /.",
+     "globs": [
+      "src/app/page.jsx"
+     ]
+    },
+    {
+     "id": "components",
+     "name": "Components",
+     "kind": "ui",
+     "what": "1 file in components",
+     "tip": "Exports: ItemRow, ItemList.",
+     "globs": [
+      "src/components/ItemList.jsx"
+     ]
+    },
+    {
+     "id": "server-actions",
+     "name": "Server actions",
+     "kind": "gate",
+     "what": "1 file in app/actions",
+     "tip": "Actions: createItem.",
+     "globs": [
+      "src/app/actions/items.js"
+     ]
+    },
+    {
+     "id": "api-routes",
+     "name": "API routes",
+     "kind": "endpoint",
+     "what": "1 file in app/api/items",
+     "tip": "Handles: GET /api/items, DELETE /api/items.",
+     "globs": [
+      "src/app/api/items/route.js"
+     ]
+    },
+    {
+     "id": "config",
+     "name": "Config",
+     "kind": "config",
+     "what": "1 file in lib",
+     "tip": "1 files.",
+     "globs": [
+      "src/lib/db.js"
+     ]
+    },
+    {
+     "id": "data-access",
+     "name": "Data access",
+     "kind": "store",
+     "what": "1 file in lib",
+     "tip": "Exports: listItems, addItem, removeItem, countItems. Writes Item. Reads Item.",
+     "globs": [
+      "src/lib/store.js"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "shared",
+   "layer": "area-shared",
+   "name": "Shared core",
+   "short": "Shared core",
+   "role": "2 files of shared code",
+   "tip": "Code in lib. Writes Tag. Used most by Items.",
+   "zones": [
+    {
+     "name": "Logic",
+     "tip": "Functions that decide and compute.",
+     "parts": [
+      "logic"
+     ]
+    },
+    {
+     "name": "Data",
+     "tip": "Code that reads and writes the database.",
+     "parts": [
+      "data-access"
+     ]
+    }
+   ],
+   "parts": [
+    {
+     "id": "logic",
+     "name": "Logic",
+     "kind": "process",
+     "what": "1 file in lib",
+     "tip": "Exports: cents, formatPrice.",
+     "globs": [
+      "src/lib/format.cjs"
+     ]
+    },
+    {
+     "id": "data-access",
+     "name": "Data access",
+     "kind": "store",
+     "what": "1 file in lib",
+     "tip": "Exports: tagItem. Writes Tag.",
+     "globs": [
+      "src/lib/tags.mjs"
+     ]
+    }
+   ]
+  }
+ ],
+ "dbGroups": [
+  {
+   "id": "items",
+   "name": "Items",
+   "tip": "Tables written or read mostly by «Items».",
+   "models": [
+    "Item"
+   ]
+  },
+  {
+   "id": "shared",
+   "name": "Shared core",
+   "tip": "Tables written or read mostly by «Shared core».",
+   "models": [
+    "Tag"
+   ]
+  }
+ ],
+ "journeys": [
+  {
+   "name": "/ → Item",
+   "group": "Items",
+   "caption": "Follows the calls and references from the page / to the code that writes Item.",
+   "steps": [
+    {
+     "module": "items",
+     "part": "pages",
+     "symbol": "HomePage",
+     "file": "src/app/page.jsx",
+     "note": "The page / renders and uses createItem."
+    },
+    {
+     "module": "items",
+     "part": "server-actions",
+     "symbol": "createItem",
+     "file": "src/app/actions/items.js",
+     "note": "Server action createItem calls addItem."
+    },
+    {
+     "module": "items",
+     "part": "data-access",
+     "symbol": "addItem",
+     "file": "src/lib/store.js",
+     "note": "Function addItem writes Item."
+    }
+   ]
+  }
+ ]
+}

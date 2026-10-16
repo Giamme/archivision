@@ -1,0 +1,1273 @@
+{
+  "title": "Corner Shop",
+  "intro": "Corner Shop lets customers browse products, pay by card and receive parcels. Staff manage stock and refunds through a back office. The system is split into storefront apps, backend services, and data and outside services.",
+  "layers": [
+    {
+      "id": "storefront",
+      "name": "Storefront",
+      "blurb": "Customer shopping and staff management interfaces.",
+      "tip": "Customers use the web shop; staff manage stock and refunds in the back office."
+    },
+    {
+      "id": "services",
+      "name": "Services",
+      "blurb": "Authentication, catalog, orders, payments, fulfilment and notifications.",
+      "tip": "Services combine direct calls with events carried by NATS."
+    },
+    {
+      "id": "data-and-outside-services",
+      "name": "Data and outside services",
+      "blurb": "Persistent catalog data and payment, shipping and email providers.",
+      "tip": "Postgres keeps products and stock. Stripe, Sendcloud and Postmark provide outside capabilities."
+    }
+  ],
+  "modules": [
+    {
+      "id": "web-shop",
+      "layer": "storefront",
+      "name": "Web shop",
+      "short": "Shop",
+      "role": "Next.js app for browsing, checkout and order history.",
+      "tip": "The basket lives in a cookie, and stock events trigger cache refreshes.",
+      "zones": [
+        {
+          "name": "Browse",
+          "tip": "Find products and keep the basket.",
+          "parts": [
+            "catalog-pages",
+            "cart"
+          ]
+        },
+        {
+          "name": "Buy",
+          "tip": "Provide delivery details and open card payment.",
+          "parts": [
+            "checkout"
+          ]
+        },
+        {
+          "name": "Review and refresh",
+          "tip": "Show previous orders and refresh cached catalog information.",
+          "parts": [
+            "account",
+            "cache-refresh"
+          ]
+        }
+      ],
+      "parts": [
+        {
+          "id": "catalog-pages",
+          "name": "Catalog pages",
+          "tag": "Catalog pages",
+          "kind": "ui",
+          "what": "List and search products through the Catalog service.",
+          "tip": "Product listing and search use the Catalog service.",
+          "children": [],
+          "links": []
+        },
+        {
+          "id": "cart",
+          "name": "Cart",
+          "tag": "Cart",
+          "kind": "ui",
+          "what": "Keep the basket in a cookie and request order totals.",
+          "tip": "Totals come from the Order service's pricing step.",
+          "children": [
+            {
+              "id": "cookie",
+              "name": "cookie",
+              "tag": "cookie",
+              "kind": "store",
+              "what": "Keep the basket.",
+              "tip": "Basket state is stored in the customer's browser cookie."
+            }
+          ],
+          "links": []
+        },
+        {
+          "id": "checkout",
+          "name": "Checkout",
+          "tag": "Checkout",
+          "kind": "ui",
+          "what": "Collect the address, submit the order and open Stripe payment.",
+          "tip": "It receives the order id and total before requesting a payment intent.",
+          "children": [],
+          "links": []
+        },
+        {
+          "id": "account",
+          "name": "Account",
+          "tag": "Account",
+          "kind": "ui",
+          "what": "Show past orders from the Order service.",
+          "tip": "Order history is supplied by the backend.",
+          "children": [],
+          "links": []
+        },
+        {
+          "id": "cache-refresh",
+          "name": "cache refresh",
+          "tag": "cache refresh",
+          "kind": "process",
+          "what": "Refresh the cache when stock.changed arrives.",
+          "tip": "The Web shop subscribes to NATS port 1.",
+          "children": [],
+          "links": []
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "back-office",
+      "layer": "storefront",
+      "name": "Back office",
+      "short": "Back office",
+      "role": "Staff-only Next.js app for stock changes and refunds.",
+      "tip": "Staff sign in with Google Workspace through the Auth gate.",
+      "zones": [
+        {
+          "name": "Manage",
+          "tip": "Staff send stock changes and refund requests to backend services.",
+          "parts": [
+            "stock-editor",
+            "refunds"
+          ]
+        }
+      ],
+      "parts": [
+        {
+          "id": "stock-editor",
+          "name": "Stock editor",
+          "tag": "Stock editor",
+          "kind": "ui",
+          "what": "Change quantities through the Catalog service.",
+          "tip": "Quantity changes cause the Catalog service to publish stock.changed.",
+          "children": [],
+          "links": []
+        },
+        {
+          "id": "refunds",
+          "name": "Refunds",
+          "tag": "Refunds",
+          "kind": "ui",
+          "what": "Ask the Payment service to refund an order.",
+          "tip": "Refund requests use POST /refunds.",
+          "children": [],
+          "links": []
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "auth-gate",
+      "layer": "services",
+      "name": "Auth gate",
+      "short": "Auth",
+      "role": "Check sessions for both apps.",
+      "tip": "Customers use email links; staff use Google Workspace SSO.",
+      "zones": [
+        {
+          "name": "Sign in",
+          "tip": "Customers and staff use different sign-in methods.",
+          "parts": [
+            "email-links",
+            "google-workspace-sso"
+          ]
+        },
+        {
+          "name": "Check",
+          "tip": "Expose session checking to both apps.",
+          "parts": [
+            "get-session"
+          ]
+        }
+      ],
+      "parts": [
+        {
+          "id": "email-links",
+          "name": "email links",
+          "tag": "email links",
+          "kind": "gate",
+          "what": "Provide customer sign-in.",
+          "tip": "This sign-in method is for customers.",
+          "children": [],
+          "links": []
+        },
+        {
+          "id": "google-workspace-sso",
+          "name": "Google Workspace SSO",
+          "tag": "Google Workspace SSO",
+          "kind": "external",
+          "what": "Provide staff sign-in.",
+          "tip": "Staff reach the back office through the Auth gate.",
+          "children": [],
+          "links": []
+        },
+        {
+          "id": "get-session",
+          "name": "GET /session",
+          "tag": "GET /session",
+          "kind": "endpoint",
+          "what": "Expose session checks.",
+          "tip": "The Auth gate checks sessions for both Next.js apps.",
+          "children": [],
+          "links": []
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "catalog-service",
+      "layer": "services",
+      "name": "Catalog service",
+      "short": "Catalog",
+      "role": "Serve products, manage stock and support stock reservation.",
+      "tip": "Products and stock are kept in Postgres; quantity changes publish stock.changed.",
+      "zones": [
+        {
+          "name": "Receive",
+          "tip": "Expose product reads and stock updates.",
+          "parts": [
+            "get-products",
+            "get-product",
+            "patch-stock"
+          ]
+        },
+        {
+          "name": "Publish",
+          "tip": "Announce changes to stock quantities.",
+          "parts": [
+            "stock-changed"
+          ]
+        }
+      ],
+      "parts": [
+        {
+          "id": "get-products",
+          "name": "GET /products",
+          "tag": "GET /products",
+          "kind": "endpoint",
+          "what": "Expose the product collection.",
+          "tip": "Catalog pages list and search products through this service.",
+          "children": [],
+          "links": []
+        },
+        {
+          "id": "get-product",
+          "name": "GET /products/:id",
+          "tag": "GET /products/:id",
+          "kind": "endpoint",
+          "what": "Expose an individual product.",
+          "tip": "The path identifies the requested product.",
+          "children": [],
+          "links": []
+        },
+        {
+          "id": "patch-stock",
+          "name": "PATCH /stock/:sku",
+          "tag": "PATCH /stock/:sku",
+          "kind": "endpoint",
+          "what": "Change stock quantities.",
+          "tip": "The path identifies stock by SKU.",
+          "children": [],
+          "links": []
+        },
+        {
+          "id": "stock-changed",
+          "name": "stock.changed",
+          "tag": "stock.changed",
+          "kind": "queue",
+          "what": "Publish a stock quantity change on NATS.",
+          "tip": "The Web shop consumes this subject for cache refresh.",
+          "children": [],
+          "links": []
+        }
+      ],
+      "links": [
+        {
+          "from": "patch-stock",
+          "to": "stock-changed",
+          "label": "quantity change"
+        }
+      ]
+    },
+    {
+      "id": "order-service",
+      "layer": "services",
+      "name": "Order service",
+      "short": "Orders",
+      "role": "Price orders, reserve stock, confirm payment and keep order records.",
+      "tip": "Confirmation waits for payment.succeeded before the order is kept and order.confirmed is published.",
+      "zones": [
+        {
+          "name": "Receive",
+          "tip": "Accept the cart and delivery address.",
+          "parts": [
+            "receive"
+          ]
+        },
+        {
+          "name": "Price",
+          "tip": "Apply prices and discounts.",
+          "parts": [
+            "price"
+          ]
+        },
+        {
+          "name": "Reserve",
+          "tip": "Hold stock through the Catalog service.",
+          "parts": [
+            "reserve"
+          ]
+        },
+        {
+          "name": "Confirm",
+          "tip": "Wait for the successful payment event.",
+          "parts": [
+            "confirm"
+          ]
+        },
+        {
+          "name": "Keep",
+          "tip": "Persist order records and announce confirmation.",
+          "parts": [
+            "keep",
+            "order-confirmed"
+          ]
+        }
+      ],
+      "parts": [
+        {
+          "id": "receive",
+          "name": "Receive",
+          "tag": "Receive",
+          "kind": "endpoint",
+          "what": "Accept POST /orders from Checkout.",
+          "tip": "Checkout sends the cart and address.",
+          "children": [
+            {
+              "id": "post-orders",
+              "name": "POST /orders",
+              "tag": "POST /orders",
+              "kind": "endpoint",
+              "what": "Receive the order submission.",
+              "tip": "The request contains the cart and delivery address."
+            }
+          ],
+          "links": []
+        },
+        {
+          "id": "price",
+          "name": "Price",
+          "tag": "Price",
+          "kind": "process",
+          "what": "Apply the price list and discount codes.",
+          "tip": "The Cart also asks this step for totals.",
+          "children": [
+            {
+              "id": "price-list",
+              "name": "price list",
+              "tag": "price list",
+              "kind": "config",
+              "what": "Supply prices used in order totals.",
+              "tip": "Applied during the Price step."
+            },
+            {
+              "id": "discount-codes",
+              "name": "discount codes",
+              "tag": "discount codes",
+              "kind": "config",
+              "what": "Supply discounts used in order totals.",
+              "tip": "Applied alongside the price list."
+            }
+          ],
+          "links": []
+        },
+        {
+          "id": "reserve",
+          "name": "Reserve",
+          "tag": "Reserve",
+          "kind": "process",
+          "what": "Hold stock by calling the Catalog service.",
+          "tip": "The reservation endpoint is not specified.",
+          "children": [],
+          "links": []
+        },
+        {
+          "id": "confirm",
+          "name": "Confirm",
+          "tag": "Confirm",
+          "kind": "gate",
+          "what": "Wait for payment.succeeded.",
+          "tip": "The Order service subscribes to payment events on NATS port 2.",
+          "children": [],
+          "links": []
+        },
+        {
+          "id": "keep",
+          "name": "Keep",
+          "tag": "Keep",
+          "kind": "process",
+          "what": "Write orders and order_lines.",
+          "tip": "This is the final named step in the order sequence.",
+          "children": [
+            {
+              "id": "orders",
+              "name": "orders",
+              "tag": "orders",
+              "kind": "store",
+              "what": "Keep order records.",
+              "tip": "Written by the Keep step."
+            },
+            {
+              "id": "order-lines",
+              "name": "order_lines",
+              "tag": "order_lines",
+              "kind": "store",
+              "what": "Keep order line records.",
+              "tip": "Written alongside orders."
+            }
+          ],
+          "links": []
+        },
+        {
+          "id": "order-confirmed",
+          "name": "order.confirmed",
+          "tag": "order.confirmed",
+          "kind": "queue",
+          "what": "Publish order confirmation on NATS.",
+          "tip": "Fulfilment worker and Notifier subscribe on port 3.",
+          "children": [],
+          "links": []
+        }
+      ],
+      "links": [
+        {
+          "from": "receive",
+          "to": "price",
+          "label": "submitted order"
+        },
+        {
+          "from": "price",
+          "to": "reserve",
+          "label": "priced order"
+        },
+        {
+          "from": "reserve",
+          "to": "confirm",
+          "label": "order with held stock"
+        },
+        {
+          "from": "confirm",
+          "to": "keep",
+          "label": "confirmed order"
+        },
+        {
+          "from": "confirm",
+          "to": "order-confirmed",
+          "label": "order confirmation"
+        }
+      ]
+    },
+    {
+      "id": "payment-service",
+      "layer": "services",
+      "name": "Payment service",
+      "short": "Payments",
+      "role": "Wrap Stripe payments, webhooks and refunds.",
+      "tip": "Refunds are stored in its own refunds table and do not use payment.failed.",
+      "zones": [
+        {
+          "name": "Receive",
+          "tip": "Handle payment creation, Stripe callbacks and staff refund requests.",
+          "parts": [
+            "payment-intents",
+            "stripe-webhook",
+            "post-refunds"
+          ]
+        },
+        {
+          "name": "Publish",
+          "tip": "Publish payment outcomes on NATS.",
+          "parts": [
+            "payment-succeeded",
+            "payment-failed"
+          ]
+        },
+        {
+          "name": "Keep",
+          "tip": "Record refunds in the service's own table.",
+          "parts": [
+            "refunds"
+          ]
+        }
+      ],
+      "parts": [
+        {
+          "id": "payment-intents",
+          "name": "payment intents",
+          "tag": "payment intents",
+          "kind": "process",
+          "what": "Create Stripe payment intents for Checkout.",
+          "tip": "Checkout requests this after receiving the order id and total.",
+          "children": [],
+          "links": []
+        },
+        {
+          "id": "stripe-webhook",
+          "name": "POST /stripe/webhook",
+          "tag": "POST /stripe/webhook",
+          "kind": "endpoint",
+          "what": "Receive Stripe webhooks.",
+          "tip": "The main flow shows payment_intent.succeeded arriving here.",
+          "children": [],
+          "links": []
+        },
+        {
+          "id": "post-refunds",
+          "name": "POST /refunds",
+          "tag": "POST /refunds",
+          "kind": "endpoint",
+          "what": "Handle refund requests from the back office.",
+          "tip": "The service runs the refund through Stripe.",
+          "children": [],
+          "links": []
+        },
+        {
+          "id": "payment-succeeded",
+          "name": "payment.succeeded",
+          "tag": "payment.succeeded",
+          "kind": "queue",
+          "what": "Publish successful payment on NATS.",
+          "tip": "This event lets the Order service confirm an order.",
+          "children": [],
+          "links": []
+        },
+        {
+          "id": "payment-failed",
+          "name": "payment.failed",
+          "tag": "payment.failed",
+          "kind": "queue",
+          "what": "Publish failed payment on NATS.",
+          "tip": "The subject is not used for refunds.",
+          "children": [],
+          "links": []
+        },
+        {
+          "id": "refunds",
+          "name": "refunds",
+          "tag": "refunds",
+          "kind": "store",
+          "what": "Keep refund records owned by the Payment service.",
+          "tip": "The service writes a refund here instead of publishing payment.failed for it.",
+          "children": [],
+          "links": []
+        }
+      ],
+      "links": [
+        {
+          "from": "stripe-webhook",
+          "to": "payment-succeeded",
+          "label": "payment_intent.succeeded"
+        },
+        {
+          "from": "post-refunds",
+          "to": "refunds",
+          "label": "refund record"
+        }
+      ]
+    },
+    {
+      "id": "fulfilment-worker",
+      "layer": "services",
+      "name": "Fulfilment worker",
+      "short": "Fulfilment",
+      "role": "Buy shipping labels for confirmed orders and announce shipment.",
+      "tip": "It consumes order.confirmed and publishes parcel.shipped.",
+      "zones": [
+        {
+          "name": "Receive",
+          "tip": "Consume confirmed orders from NATS.",
+          "parts": [
+            "order-confirmed"
+          ]
+        },
+        {
+          "name": "Act",
+          "tip": "Purchase a shipping label.",
+          "parts": [
+            "buys-a-label"
+          ]
+        },
+        {
+          "name": "Publish",
+          "tip": "Announce the parcel shipment.",
+          "parts": [
+            "parcel-shipped"
+          ]
+        }
+      ],
+      "parts": [
+        {
+          "id": "order-confirmed",
+          "name": "order.confirmed",
+          "tag": "order.confirmed",
+          "kind": "queue",
+          "what": "Subscribe to confirmed orders.",
+          "tip": "Orders arrive through NATS port 3.",
+          "children": [],
+          "links": []
+        },
+        {
+          "id": "buys-a-label",
+          "name": "buys a label",
+          "tag": "buys a label",
+          "kind": "process",
+          "what": "Buy a label from the Sendcloud API.",
+          "tip": "A confirmed order triggers the shipping-provider call.",
+          "children": [],
+          "links": []
+        },
+        {
+          "id": "parcel-shipped",
+          "name": "parcel.shipped",
+          "tag": "parcel.shipped",
+          "kind": "queue",
+          "what": "Publish parcel shipment on NATS.",
+          "tip": "Notifier subscribes to this event on port 4.",
+          "children": [],
+          "links": []
+        }
+      ],
+      "links": [
+        {
+          "from": "order-confirmed",
+          "to": "buys-a-label",
+          "label": "confirmed order"
+        },
+        {
+          "from": "buys-a-label",
+          "to": "parcel-shipped",
+          "label": "parcel shipment"
+        }
+      ]
+    },
+    {
+      "id": "notifier",
+      "layer": "services",
+      "name": "Notifier",
+      "short": "Notifier",
+      "role": "Send order and shipment emails through Postmark.",
+      "tip": "It reacts to order.confirmed and parcel.shipped using two named templates.",
+      "zones": [
+        {
+          "name": "Receive",
+          "tip": "Consume order and shipment events.",
+          "parts": [
+            "order-confirmed",
+            "parcel-shipped"
+          ]
+        },
+        {
+          "name": "Compose",
+          "tip": "Use the named email templates.",
+          "parts": [
+            "templates"
+          ]
+        }
+      ],
+      "parts": [
+        {
+          "id": "order-confirmed",
+          "name": "order.confirmed",
+          "tag": "order.confirmed",
+          "kind": "queue",
+          "what": "Subscribe to order confirmation events.",
+          "tip": "NATS port 3 also supplies the Fulfilment worker.",
+          "children": [],
+          "links": []
+        },
+        {
+          "id": "parcel-shipped",
+          "name": "parcel.shipped",
+          "tag": "parcel.shipped",
+          "kind": "queue",
+          "what": "Subscribe to parcel shipment events.",
+          "tip": "The Fulfilment worker publishes these events on port 4.",
+          "children": [],
+          "links": []
+        },
+        {
+          "id": "templates",
+          "name": "templates",
+          "tag": "templates",
+          "kind": "config",
+          "what": "Supply the order and shipment email templates.",
+          "tip": "Notifier sends the resulting emails through Postmark.",
+          "children": [
+            {
+              "id": "order-confirmed",
+              "name": "order-confirmed",
+              "tag": "order-confirmed",
+              "kind": "config",
+              "what": "Template for order confirmation emails.",
+              "tip": "Used for the order confirmation notification."
+            },
+            {
+              "id": "parcel-on-its-way",
+              "name": "parcel-on-its-way",
+              "tag": "parcel-on-its-way",
+              "kind": "config",
+              "what": "Template for shipment emails.",
+              "tip": "Used for the parcel shipment notification."
+            }
+          ],
+          "links": []
+        }
+      ],
+      "links": [
+        {
+          "from": "order-confirmed",
+          "to": "templates",
+          "label": "order confirmation"
+        },
+        {
+          "from": "parcel-shipped",
+          "to": "templates",
+          "label": "parcel shipment"
+        }
+      ]
+    },
+    {
+      "id": "postgres",
+      "layer": "data-and-outside-services",
+      "name": "Postgres",
+      "short": "Postgres",
+      "role": "Keep catalog products and stock.",
+      "tip": "The Catalog service explicitly stores its products and stock tables here.",
+      "zones": [
+        {
+          "name": "Keep",
+          "tip": "Persist catalog records and stock quantities.",
+          "parts": [
+            "products",
+            "stock"
+          ]
+        }
+      ],
+      "parts": [
+        {
+          "id": "products",
+          "name": "products",
+          "tag": "products",
+          "kind": "store",
+          "what": "Keep product records.",
+          "tip": "Managed by the Catalog service.",
+          "children": [],
+          "links": []
+        },
+        {
+          "id": "stock",
+          "name": "stock",
+          "tag": "stock",
+          "kind": "store",
+          "what": "Keep stock quantities.",
+          "tip": "Quantity changes are announced through stock.changed.",
+          "children": [],
+          "links": []
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "stripe",
+      "layer": "data-and-outside-services",
+      "name": "Stripe",
+      "short": "Stripe",
+      "role": "Provide card payment and refund capabilities.",
+      "tip": "The Payment service creates intents and receives payment webhooks.",
+      "zones": [
+        {
+          "name": "Pay",
+          "tip": "Support Checkout's payment sheet and payment intents.",
+          "parts": [
+            "payment-sheet",
+            "payment-intent"
+          ]
+        },
+        {
+          "name": "Refund",
+          "tip": "Process refunds requested through the Payment service.",
+          "parts": [
+            "stripe-refund"
+          ]
+        }
+      ],
+      "parts": [
+        {
+          "id": "payment-sheet",
+          "name": "Stripe payment sheet",
+          "tag": "Stripe payment sheet",
+          "kind": "ui",
+          "what": "Present card payment during Checkout.",
+          "tip": "Checkout opens this payment surface.",
+          "children": [],
+          "links": []
+        },
+        {
+          "id": "payment-intent",
+          "name": "PaymentIntent",
+          "tag": "PaymentIntent",
+          "kind": "external",
+          "what": "Handle the payment intent created by the Payment service.",
+          "tip": "The main flow returns payment_intent.succeeded as a webhook.",
+          "children": [],
+          "links": []
+        },
+        {
+          "id": "stripe-refund",
+          "name": "Stripe refund",
+          "tag": "Stripe refund",
+          "kind": "external",
+          "what": "Execute a refund requested by the Payment service.",
+          "tip": "The Payment service keeps its own refund record.",
+          "children": [],
+          "links": []
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "sendcloud-api",
+      "layer": "data-and-outside-services",
+      "name": "Sendcloud API",
+      "short": "Sendcloud",
+      "role": "Provide shipping labels to the Fulfilment worker.",
+      "tip": "The worker buys a label after receiving order.confirmed.",
+      "zones": [
+        {
+          "name": "Supply",
+          "tip": "Provide the purchased shipping label.",
+          "parts": [
+            "label"
+          ]
+        }
+      ],
+      "parts": [
+        {
+          "id": "label",
+          "name": "label",
+          "tag": "label",
+          "kind": "external",
+          "what": "Supply the label bought by the Fulfilment worker.",
+          "tip": "No specific Sendcloud endpoint is documented.",
+          "children": [],
+          "links": []
+        }
+      ],
+      "links": []
+    },
+    {
+      "id": "postmark",
+      "layer": "data-and-outside-services",
+      "name": "Postmark",
+      "short": "Postmark",
+      "role": "Deliver emails sent by Notifier.",
+      "tip": "Emails cover order confirmation and parcel shipment.",
+      "zones": [
+        {
+          "name": "Deliver",
+          "tip": "Send the emails prepared by Notifier.",
+          "parts": [
+            "emails"
+          ]
+        }
+      ],
+      "parts": [
+        {
+          "id": "emails",
+          "name": "emails",
+          "tag": "emails",
+          "kind": "external",
+          "what": "Deliver customer notification emails.",
+          "tip": "Notifier supplies messages using its two named templates.",
+          "children": [],
+          "links": []
+        }
+      ],
+      "links": []
+    }
+  ],
+  "flows": [
+    {
+      "from": "web-shop",
+      "to": "auth-gate",
+      "label": "session checks",
+      "kind": "calls"
+    },
+    {
+      "from": "back-office",
+      "to": "auth-gate",
+      "label": "staff sign-in, session checks",
+      "kind": "calls"
+    },
+    {
+      "from": "web-shop",
+      "to": "catalog-service",
+      "label": "product listing and search",
+      "kind": "calls"
+    },
+    {
+      "from": "web-shop",
+      "to": "order-service",
+      "label": "cart totals · POST /orders: cart, address · past orders",
+      "kind": "calls"
+    },
+    {
+      "from": "order-service",
+      "to": "web-shop",
+      "label": "order id, total",
+      "kind": "returns"
+    },
+    {
+      "from": "web-shop",
+      "to": "payment-service",
+      "label": "create payment intent",
+      "kind": "calls"
+    },
+    {
+      "from": "web-shop",
+      "to": "stripe",
+      "label": "open payment sheet",
+      "kind": "calls"
+    },
+    {
+      "from": "back-office",
+      "to": "catalog-service",
+      "label": "stock quantities",
+      "kind": "writes"
+    },
+    {
+      "from": "back-office",
+      "to": "payment-service",
+      "label": "POST /refunds",
+      "kind": "calls"
+    },
+    {
+      "from": "order-service",
+      "to": "catalog-service",
+      "label": "reserve stock",
+      "kind": "calls"
+    },
+    {
+      "from": "catalog-service",
+      "to": "postgres",
+      "label": "products, stock",
+      "kind": "stores"
+    },
+    {
+      "from": "payment-service",
+      "to": "stripe",
+      "label": "PaymentIntent · Stripe refund",
+      "kind": "calls"
+    },
+    {
+      "from": "stripe",
+      "to": "payment-service",
+      "label": "webhook payment_intent.succeeded",
+      "kind": "calls"
+    },
+    {
+      "from": "fulfilment-worker",
+      "to": "sendcloud-api",
+      "label": "buy label",
+      "kind": "calls"
+    },
+    {
+      "from": "notifier",
+      "to": "postmark",
+      "label": "notification emails",
+      "kind": "calls"
+    }
+  ],
+  "bus": {
+    "name": "NATS",
+    "tip": "The event bus connects publishers and subscribers through four numbered subject groups.",
+    "ports": [
+      {
+        "n": 1,
+        "name": "stock.changed",
+        "tip": "Catalog service publishes quantity changes; Web shop subscribes for cache refresh.",
+        "modules": [
+          "catalog-service",
+          "web-shop"
+        ]
+      },
+      {
+        "n": 2,
+        "name": "payment.succeeded / payment.failed",
+        "tip": "Payment service publishes payment outcomes; Order service subscribes.",
+        "modules": [
+          "payment-service",
+          "order-service"
+        ]
+      },
+      {
+        "n": 3,
+        "name": "order.confirmed",
+        "tip": "Order service publishes confirmation; Fulfilment worker and Notifier subscribe.",
+        "modules": [
+          "order-service",
+          "fulfilment-worker",
+          "notifier"
+        ]
+      },
+      {
+        "n": 4,
+        "name": "parcel.shipped",
+        "tip": "Fulfilment worker publishes shipment; Notifier subscribes.",
+        "modules": [
+          "fulfilment-worker",
+          "notifier"
+        ]
+      }
+    ]
+  },
+  "journeys": [
+    {
+      "name": "Place and pay for an order",
+      "group": "Customer purchase",
+      "caption": "Checkout creates an order, Stripe processes payment, and a payment event allows confirmation.",
+      "steps": [
+        {
+          "at": "web-shop",
+          "part": "checkout",
+          "note": "Checkout sends the cart and address to POST /orders."
+        },
+        {
+          "at": "order-service",
+          "part": "receive",
+          "note": "Receive accepts the order submission."
+        },
+        {
+          "at": "order-service",
+          "part": "price",
+          "note": "Price applies the price list and discount codes."
+        },
+        {
+          "at": "order-service",
+          "part": "reserve",
+          "note": "Reserve calls the Catalog service to hold stock."
+        },
+        {
+          "at": "catalog-service",
+          "part": "",
+          "note": "The Catalog service handles the stock reservation."
+        },
+        {
+          "at": "order-service",
+          "part": "",
+          "note": "The Order service returns the order id and total."
+        },
+        {
+          "at": "web-shop",
+          "part": "checkout",
+          "note": "Checkout requests a payment intent from the Payment service."
+        },
+        {
+          "at": "payment-service",
+          "part": "payment-intents",
+          "note": "The Payment service creates a Stripe PaymentIntent."
+        },
+        {
+          "at": "stripe",
+          "part": "payment-intent",
+          "note": "Stripe reports successful payment through payment_intent.succeeded."
+        },
+        {
+          "at": "payment-service",
+          "part": "stripe-webhook",
+          "note": "POST /stripe/webhook receives the Stripe callback."
+        },
+        {
+          "at": "payment-service",
+          "part": "payment-succeeded",
+          "note": "The Payment service publishes payment.succeeded."
+        },
+        {
+          "at": "P2",
+          "part": "",
+          "note": "NATS delivers payment.succeeded to the Order service."
+        },
+        {
+          "at": "order-service",
+          "part": "confirm",
+          "note": "Confirm proceeds when the successful payment event arrives."
+        },
+        {
+          "at": "order-service",
+          "part": "keep",
+          "note": "Keep writes orders and order_lines."
+        },
+        {
+          "at": "order-service",
+          "part": "order-confirmed",
+          "note": "The Order service publishes order.confirmed."
+        },
+        {
+          "at": "P3",
+          "part": "",
+          "note": "NATS delivers the confirmation to Fulfilment worker and Notifier."
+        }
+      ]
+    },
+    {
+      "name": "Ship a parcel and notify the customer",
+      "group": "Customer purchase",
+      "caption": "A confirmed order triggers label purchase and a shipment email.",
+      "steps": [
+        {
+          "at": "P3",
+          "part": "",
+          "note": "NATS carries order.confirmed to the Fulfilment worker."
+        },
+        {
+          "at": "fulfilment-worker",
+          "part": "order-confirmed",
+          "note": "The worker receives the confirmed order."
+        },
+        {
+          "at": "fulfilment-worker",
+          "part": "buys-a-label",
+          "note": "The worker buys a shipping label from Sendcloud."
+        },
+        {
+          "at": "sendcloud-api",
+          "part": "label",
+          "note": "Sendcloud supplies the purchased label."
+        },
+        {
+          "at": "fulfilment-worker",
+          "part": "parcel-shipped",
+          "note": "The worker publishes parcel.shipped."
+        },
+        {
+          "at": "P4",
+          "part": "",
+          "note": "NATS delivers the shipment event to Notifier."
+        },
+        {
+          "at": "notifier",
+          "part": "parcel-shipped",
+          "note": "Notifier receives the parcel shipment event."
+        },
+        {
+          "at": "notifier",
+          "part": "templates",
+          "note": "Notifier uses the parcel-on-its-way template."
+        },
+        {
+          "at": "postmark",
+          "part": "emails",
+          "note": "Postmark sends the shipment email."
+        }
+      ]
+    },
+    {
+      "name": "Send an order confirmation email",
+      "group": "Customer purchase",
+      "caption": "Notifier independently consumes order confirmation and sends an email through Postmark.",
+      "steps": [
+        {
+          "at": "P3",
+          "part": "",
+          "note": "NATS delivers order.confirmed to Notifier."
+        },
+        {
+          "at": "notifier",
+          "part": "order-confirmed",
+          "note": "Notifier receives the order confirmation."
+        },
+        {
+          "at": "notifier",
+          "part": "templates",
+          "note": "Notifier uses the order-confirmed template."
+        },
+        {
+          "at": "postmark",
+          "part": "emails",
+          "note": "Postmark sends the order confirmation email."
+        }
+      ]
+    },
+    {
+      "name": "Change stock and refresh the shop",
+      "group": "Staff operations",
+      "caption": "A staff quantity change produces a stock event that refreshes the Web shop cache.",
+      "steps": [
+        {
+          "at": "back-office",
+          "part": "stock-editor",
+          "note": "Staff change a stock quantity through the Catalog service."
+        },
+        {
+          "at": "catalog-service",
+          "part": "patch-stock",
+          "note": "PATCH /stock/:sku handles the quantity change."
+        },
+        {
+          "at": "catalog-service",
+          "part": "stock-changed",
+          "note": "The Catalog service publishes stock.changed."
+        },
+        {
+          "at": "P1",
+          "part": "",
+          "note": "NATS delivers the stock change to the Web shop."
+        },
+        {
+          "at": "web-shop",
+          "part": "cache-refresh",
+          "note": "The Web shop refreshes its cache."
+        }
+      ]
+    },
+    {
+      "name": "Refund an order",
+      "group": "Staff operations",
+      "caption": "Staff request a Stripe refund, which the Payment service records in its own table.",
+      "steps": [
+        {
+          "at": "back-office",
+          "part": "refunds",
+          "note": "Staff request an order refund."
+        },
+        {
+          "at": "payment-service",
+          "part": "post-refunds",
+          "note": "POST /refunds initiates the Stripe refund."
+        },
+        {
+          "at": "stripe",
+          "part": "stripe-refund",
+          "note": "Stripe processes the refund."
+        },
+        {
+          "at": "payment-service",
+          "part": "refunds",
+          "note": "The Payment service writes its refund record without using payment.failed."
+        }
+      ]
+    }
+  ],
+  "unclear": [
+    "Whether the Order service should hear about refunds is explicitly left open.",
+    "The Order service subscribes to payment.failed, but its failure-handling behavior is not described.",
+    "The Catalog service's stock reservation endpoint and reservation lifecycle are not specified.",
+    "The source names orders, order_lines and refunds tables but does not explicitly identify their database.",
+    "The exact ordering between writing order records and publishing order.confirmed is not specified.",
+    "Back office, Postgres, Sendcloud API and Postmark have fewer than three documented parts; no additional parts are inferred."
+  ],
+  "_by": "gpt-6-astra (Codex CLI)",
+  "_source": "drawn by gpt-6-astra (Codex CLI) from architecture.md · 2026-10-14"
+}
