@@ -1,0 +1,89 @@
+service: fulfilment
+frameworkVersion: "3"
+
+# Buys shipping labels when an order is confirmed and follows the parcels until they arrive.
+# order.confirmed reaches this service through the bus's SQS bridge (queue fulfilment-order-confirmed);
+# parcel.shipped goes back to the bus through the outbox queue.
+
+provider:
+  name: aws
+  runtime: python3.11
+  architecture: arm64
+  region: eu-west-1
+  memorySize: 256
+  timeout: 30
+  logRetentionInDays: 30
+  environment:
+    LABELS_BUCKET: corner-shop-labels
+    PARCELS_TABLE: parcels
+    EVENTS_OUTBOX_QUEUE: corner-shop-events-outbox
+    SENDCLOUD_API_URL: https://panel.sendcloud.sc/api/v2
+    SENDCLOUD_PUBLIC_KEY: ${ssm:/corner-shop/sendcloud/public-key}
+    SENDCLOUD_SECRET_KEY: ${ssm:/corner-shop/sendcloud/secret-key}
+    SENDER_ADDRESS_ID: "184022"
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action: [s3:PutObject, s3:GetObject]
+          Resource: arn:aws:s3:::corner-shop-labels/*
+        - Effect: Allow
+          Action: [dynamodb:GetItem, dynamodb:PutItem, dynamodb:UpdateItem, dynamodb:Query]
+          Resource:
+            - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/parcels
+            - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/parcels/index/*
+        - Effect: Allow
+          Action: [sqs:GetQueueUrl, sqs:SendMessage]
+          Resource: arn:aws:sqs:${aws:region}:${aws:accountId}:corner-shop-events-outbox
+
+functions:
+  onOrderConfirmed:
+    handler: handler.on_order_confirmed
+    description: Buys a Sendcloud label for each confirmed order and publishes parcel.shipped
+    events:
+      - sqs:
+          arn: arn:aws:sqs:${aws:region}:${aws:accountId}:fulfilment-order-confirmed
+          batchSize: 5
+          functionResponseType: ReportBatchItemFailures
+  trackParcels:
+    handler: handler.track_parcels
+    description: Asks Sendcloud where the parcels in transit are
+    timeout: 120
+    events:
+      - schedule: rate(30 minutes)
+
+resources:
+  Resources:
+    LabelsBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: corner-shop-labels
+        LifecycleConfiguration:
+          Rules:
+            - Id: expire-old-labels
+              Status: Enabled
+              ExpirationInDays: 400
+    ParcelsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: parcels
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: order_id
+            AttributeType: S
+          - AttributeName: status
+            AttributeType: S
+          - AttributeName: updated_at
+            AttributeType: S
+        KeySchema:
+          - AttributeName: order_id
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: by-status
+            KeySchema:
+              - AttributeName: status
+                KeyType: HASH
+              - AttributeName: updated_at
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL

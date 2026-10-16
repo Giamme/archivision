@@ -1,0 +1,315 @@
+// Corner Shop database (PostgreSQL). @corner/db owns the schema and the migrations; the services read and write
+// through the client it exports. Money is always an integer number of cents, with the currency next to it.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum StaffRole {
+  ADMIN
+  STOCK
+  SUPPORT
+}
+
+enum DiscountKind {
+  PERCENT
+  FIXED
+}
+
+enum CheckoutStatus {
+  OPEN // priced, stock held, waiting for payment
+  KEPT // paid; the order was written
+  RELEASED // payment failed or the hold ran out; the stock went back
+}
+
+enum OrderStatus {
+  CONFIRMED
+  SHIPPED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  REQUIRES_PAYMENT
+  SUCCEEDED
+  FAILED
+  PARTIALLY_REFUNDED
+  REFUNDED
+}
+
+// ---------- people and sessions ----------
+
+model User {
+  id        String    @id @default(cuid())
+  email     String    @unique
+  name      String?
+  createdAt DateTime  @default(now())
+  sessions  Session[]
+  addresses Address[]
+  orders    Order[]
+}
+
+model Session {
+  id        String       @id @default(cuid())
+  token     String       @unique // sha-256 of the cookie value, never the value itself
+  userId    String?
+  user      User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  staffId   String?
+  staff     StaffMember? @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime     @default(now())
+
+  @@index([userId])
+  @@index([staffId])
+}
+
+model VerificationToken {
+  id        String   @id @default(cuid())
+  email     String
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([email])
+}
+
+model StaffMember {
+  id          String     @id @default(cuid())
+  email       String     @unique
+  name        String
+  googleSub   String?    @unique
+  role        StaffRole  @default(SUPPORT)
+  active      Boolean    @default(true)
+  lastLoginAt DateTime?
+  sessions    Session[]
+  refunds     Refund[]
+  auditLogs   AuditLog[]
+}
+
+model Address {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label      String?
+  name       String
+  line1      String
+  line2      String?
+  city       String
+  postalCode String
+  country    String   @db.Char(2)
+  phone      String?
+  isDefault  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  orders     Order[]
+
+  @@index([userId])
+}
+
+// ---------- catalog ----------
+
+model Category {
+  id       String     @id @default(cuid())
+  slug     String     @unique
+  name     String
+  position Int        @default(0)
+  parentId String?
+  parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children Category[] @relation("CategoryTree")
+  products Product[]
+}
+
+model Product {
+  id          String    @id @default(cuid())
+  slug        String    @unique
+  name        String
+  description String
+  imageUrl    String?
+  published   Boolean   @default(false)
+  featured    Boolean   @default(false)
+  categoryId  String
+  category    Category  @relation(fields: [categoryId], references: [id])
+  variants    Variant[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([categoryId, published])
+}
+
+model Variant {
+  id          String      @id @default(cuid())
+  sku         String      @unique
+  productId   String
+  product     Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name        String
+  weightGrams Int
+  stock       Stock?
+  prices      Price[]
+  orderLines  OrderLine[]
+}
+
+model Stock {
+  sku       String   @id
+  variant   Variant  @relation(fields: [sku], references: [sku])
+  onHand    Int      @default(0)
+  reserved  Int      @default(0)
+  version   Int      @default(0) // optimistic lock for reservations
+  updatedAt DateTime @updatedAt
+}
+
+// ---------- pricing ----------
+
+model PriceList {
+  id       String    @id @default(cuid())
+  name     String
+  currency String    @db.Char(3)
+  active   Boolean   @default(false)
+  startsAt DateTime?
+  endsAt   DateTime?
+  prices   Price[]
+}
+
+model Price {
+  id          String    @id @default(cuid())
+  priceListId String
+  priceList   PriceList @relation(fields: [priceListId], references: [id], onDelete: Cascade)
+  variantId   String
+  variant     Variant   @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  amountCents Int
+
+  @@unique([priceListId, variantId])
+}
+
+model Discount {
+  id             String       @id @default(cuid())
+  code           String       @unique
+  kind           DiscountKind
+  value          Int // percent (1-100) or cents, by kind
+  minTotalCents  Int          @default(0)
+  maxRedemptions Int?
+  redemptions    Int          @default(0)
+  startsAt       DateTime?
+  endsAt         DateTime?
+  active         Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  checkouts      Checkout[]
+}
+
+// ---------- orders ----------
+
+// A priced cart with its stock held, waiting for payment.succeeded. Kept as an order once paid.
+model Checkout {
+  id            String         @id @default(cuid())
+  email         String
+  userId        String?
+  addressId     String?
+  shippingJson  Json
+  linesJson     Json
+  currency      String         @db.Char(3)
+  subtotalCents Int
+  discountCents Int            @default(0)
+  shippingCents Int
+  totalCents    Int
+  discountId    String?
+  discount      Discount?      @relation(fields: [discountId], references: [id])
+  status        CheckoutStatus @default(OPEN)
+  holdExpiresAt DateTime
+  createdAt     DateTime       @default(now())
+  order         Order?
+  payments      Payment[]
+
+  @@index([status, holdExpiresAt])
+}
+
+model Order {
+  id            String      @id @default(cuid())
+  number        String      @unique // CS-2026-000123, shown to customers
+  checkoutId    String      @unique
+  checkout      Checkout    @relation(fields: [checkoutId], references: [id])
+  userId        String?
+  user          User?       @relation(fields: [userId], references: [id])
+  email         String
+  addressId     String?
+  address       Address?    @relation(fields: [addressId], references: [id])
+  shippingJson  Json
+  status        OrderStatus @default(CONFIRMED)
+  currency      String      @db.Char(3)
+  subtotalCents Int
+  discountCents Int
+  shippingCents Int
+  totalCents    Int
+  lines         OrderLine[]
+  refunds       Refund[]
+  placedAt      DateTime    @default(now())
+  shippedAt     DateTime?
+
+  @@index([userId, placedAt])
+  @@index([status, placedAt])
+}
+
+model OrderLine {
+  id             String  @id @default(cuid())
+  orderId        String
+  order          Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  variantId      String
+  variant        Variant @relation(fields: [variantId], references: [id])
+  sku            String
+  name           String
+  quantity       Int
+  unitPriceCents Int
+  discountCents  Int     @default(0)
+  totalCents     Int
+
+  @@index([orderId])
+}
+
+// ---------- payments ----------
+
+model Payment {
+  id             String        @id @default(cuid())
+  checkoutId     String
+  checkout       Checkout      @relation(fields: [checkoutId], references: [id])
+  stripeIntentId String        @unique
+  amountCents    Int
+  currency       String        @db.Char(3)
+  status         PaymentStatus @default(REQUIRES_PAYMENT)
+  failureCode    String?
+  refundedCents  Int           @default(0)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  refunds        Refund[]
+
+  @@index([checkoutId])
+}
+
+model Refund {
+  id             String      @id @default(cuid())
+  paymentId      String
+  payment        Payment     @relation(fields: [paymentId], references: [id])
+  orderId        String
+  order          Order       @relation(fields: [orderId], references: [id])
+  stripeRefundId String      @unique
+  amountCents    Int
+  reason         String
+  staffId        String
+  staff          StaffMember @relation(fields: [staffId], references: [id])
+  createdAt      DateTime    @default(now())
+}
+
+// ---------- audit ----------
+
+model AuditLog {
+  id        String       @id @default(cuid())
+  action    String // stock.set, order.kept, refund.created, discount.saved …
+  entity    String
+  entityId  String
+  staffId   String?
+  staff     StaffMember? @relation(fields: [staffId], references: [id])
+  data      Json?
+  createdAt DateTime     @default(now())
+
+  @@index([entity, entityId])
+}

@@ -1,0 +1,60 @@
+service: notifier
+frameworkVersion: "3"
+
+# Sends the order emails through Postmark. order.confirmed and parcel.shipped reach this service through the bus's
+# SQS bridge; the sent_emails table makes sure a redelivered message never sends the same email twice.
+
+provider:
+  name: aws
+  runtime: python3.11
+  architecture: arm64
+  region: eu-west-1
+  memorySize: 128
+  timeout: 20
+  logRetentionInDays: 30
+  environment:
+    SENT_EMAILS_TABLE: sent_emails
+    POSTMARK_SERVER_TOKEN: ${ssm:/corner-shop/postmark/server-token}
+    FROM_ADDRESS: Corner Shop <orders@example.com>
+    SHOP_URL: https://shop.example.com
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action: [dynamodb:GetItem, dynamodb:PutItem, dynamodb:UpdateItem]
+          Resource: arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/sent_emails
+
+functions:
+  onOrderConfirmed:
+    handler: handler.on_order_confirmed
+    description: Sends the order-confirmed email
+    events:
+      - sqs:
+          arn: arn:aws:sqs:${aws:region}:${aws:accountId}:notifier-order-confirmed
+          batchSize: 10
+          functionResponseType: ReportBatchItemFailures
+  onParcelShipped:
+    handler: handler.on_parcel_shipped
+    description: Sends the parcel-on-its-way email with the tracking link
+    events:
+      - sqs:
+          arn: arn:aws:sqs:${aws:region}:${aws:accountId}:notifier-parcel-shipped
+          batchSize: 10
+          functionResponseType: ReportBatchItemFailures
+
+resources:
+  Resources:
+    SentEmailsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: sent_emails
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: message_key
+            AttributeType: S
+        KeySchema:
+          - AttributeName: message_key
+            KeyType: HASH
+        TimeToLiveSpecification:
+          AttributeName: expires_at
+          Enabled: true

@@ -1,0 +1,19 @@
+{
+  "name": "@corner/orders",
+  "version": "0.0.0",
+  "private": true,
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "worker": "tsx src/worker.ts",
+    "worker:dev": "tsx watch src/worker.ts"
+  },
+  "dependencies": {
+    "@corner/catalog": "*",
+    "@corner/db": "*",
+    "@corner/events": "*"
+  },
+  "devDependencies": {
+    "tsx": "4.19.2"
+  }
+}

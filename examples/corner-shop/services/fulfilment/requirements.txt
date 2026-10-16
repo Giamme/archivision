@@ -1,0 +1,3 @@
+# Runtime dependencies; boto3 comes with the Lambda Python runtime.
+# Tests: pip install -r requirements.txt boto3 "moto[s3,dynamodb,sqs]" pytest, then pytest from this folder.
+requests==2.32.3

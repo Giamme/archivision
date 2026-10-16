@@ -2,6 +2,9 @@
 
 A 3D isometric map you can open, in the iso-glow style, of a codebase or of an architecture. It works two ways:
 
+![archivision on an example shop: the map flies in, opens the Orders package and one of its parts, plays a walkthrough from the checkout page to the stock table, then shows what a branch changes](https://raw.githubusercontent.com/Giamme/archivision/main/media/tour.webp)
+
+
 - **`archivision repo`** reads a TypeScript, JavaScript, Python or Go repo and maps it **with no AI**. Parsers find the files, functions, calls, data stores (Prisma tables; DynamoDB tables, S3 buckets, SQS queues and SQL tables from Python), Lambda handlers, tests and branch changes. A fixed set of rules groups them into blocks and parts. Every block, part, function, cable and walkthrough step links to the exact lines on GitHub (at the scanned commit) or in VS Code or Cursor.
 - **`archivision arch`** reads architecture documents and diagrams (Markdown, Mermaid, draw.io, images, PDFs…) and has a model turn them into the same kind of map. The model runs through the AI CLIs you are already logged in to (Claude Code or Codex); archivision never asks for an API key. It has no code links, but keeps the blocks, parts, pieces, cables, an optional numbered bus and walkthroughs.
 
@@ -24,9 +27,29 @@ node bin/archivision.js render examples/shop/shop.arch.json --open
 node bin/archivision.js arch examples/shop/architecture.md --name "Corner Shop" --open
 ```
 
-`render` draws the example model as it is; `arch` has the AI draw it again from its source document. `npm link` puts `archivision` on your PATH.
+`render` draws the example model as it is; `arch` has the AI draw it again from its source document. `node bin/archivision.js repo examples/corner-shop --open` maps the same shop's code: an invented monorepo with a Next.js storefront and back office, TypeScript packages over Prisma, and two Python Lambda services. `npm link` puts `archivision` on your PATH.
 
 **Needs** Node 20 or later and git. Optional: Python 3.10 or later (`python3`) for Python repos, ripwire 0.6.7 for Go, the `claude` (Claude Code) or `codex` CLI, logged in, for architecture mode, and `pdftotext` for PDFs.
+
+## What a map shows
+
+All of these are the Corner Shop example (`examples/corner-shop` and `examples/shop`).
+
+**Three levels.** The whole repo is a plate of blocks. Open a block to see its parts inside it, and a part to see its functions, files and tests, each linked to its lines.
+
+![Three levels of the same map: the whole repo; the Orders package open, with its Logic, Config and Data access parts; its Logic part open, with the functions reserveOrder, releaseOrder, onPaymentSucceeded, onPaymentFailed and startWorker](https://raw.githubusercontent.com/Giamme/archivision/main/media/levels.webp)
+
+**Walkthroughs.** Each one follows real calls from a page, an API route or a Lambda handler down to the code that writes the data, one step per call, each step linked to its line.
+
+![The walkthrough from the checkout page to the stock table, lit across the Checkout, Actions, Orders and Catalog blocks, with its eight steps listed beside the map](https://raw.githubusercontent.com/Giamme/archivision/main/media/journey.webp)
+
+**Branches.** Press **b** to compare two branches: the blocks that hold the changes light up, and dashed arcs come from the code that calls what changed.
+
+![The branch view comparing feature/gift-cards with dev: 9 files changed, the Orders, Checkout, Actions and Payments blocks lit, dashed arcs from their callers](https://raw.githubusercontent.com/Giamme/archivision/main/media/branches.webp)
+
+**Architecture.** `archivision arch` draws the same kind of map from documents and diagrams: here the Corner Shop's architecture document, with its services, outside providers, event bus and walkthroughs.
+
+![The Corner Shop architecture: twelve blocks for the shop, back office, auth, catalog, orders, payments, fulfilment and notifier services, Postgres, Stripe, Sendcloud and Postmark, with five walkthroughs listed](https://raw.githubusercontent.com/Giamme/archivision/main/media/architecture.webp)
 
 ## Repo mode (no AI)
 
@@ -129,7 +152,7 @@ npm test                        # repo mode on fixture git repos, the scan contr
 npm run check -- page.html      # click through any page offline: every block and part, links, branches, walkthroughs
 ```
 
-The full suite needs Python 3.10 or later. The Go tests that run ripwire itself skip unless ripwire 0.6.7 is on the PATH or named by `ARCHIVISION_RIPWIRE`. `ARCHIVISION_ACCEPT=/path/to/repo,/path/to/other npm test` also checks your own repos: every code root holds exactly the code git lists, and every file is either mapped or counted.
+The full suite needs Python 3.10 or later. The Go tests that run ripwire itself skip unless ripwire 0.6.7 is on the PATH or named by `ARCHIVISION_RIPWIRE`. `node scripts/readme-media.mjs` makes the pictures above again from the examples, in a headless Chrome (it needs Google Chrome and ffmpeg). `ARCHIVISION_ACCEPT=/path/to/repo,/path/to/other npm test` also checks your own repos: every code root holds exactly the code git lists, and every file is either mapped or counted.
 
 `test/check-page.mjs` runs the real page module and three.js in jsdom with WebGL stubbed: no browser, no downloads. On a repo page it also opens every code link's file and line on disk.
 

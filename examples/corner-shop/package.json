@@ -1,0 +1,23 @@
+{
+  "name": "corner-shop",
+  "private": true,
+  "workspaces": ["apps/*", "packages/*"],
+  "scripts": {
+    "dev": "npm run dev --workspace @corner/web",
+    "worker": "npm run worker --workspace @corner/orders",
+    "build": "npm run build --workspaces --if-present",
+    "test": "vitest run",
+    "test:e2e": "npm run e2e --workspace @corner/web",
+    "db:migrate": "npm run migrate --workspace @corner/db",
+    "db:seed": "npm run seed --workspace @corner/db",
+    "typecheck": "tsc -b"
+  },
+  "devDependencies": {
+    "@types/node": "22.10.2",
+    "typescript": "5.7.2",
+    "vitest": "2.1.8"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

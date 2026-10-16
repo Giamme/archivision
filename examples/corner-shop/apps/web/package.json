@@ -1,0 +1,30 @@
+{
+  "name": "@corner/web",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "e2e": "playwright test"
+  },
+  "dependencies": {
+    "@corner/auth": "*",
+    "@corner/catalog": "*",
+    "@corner/db": "*",
+    "@corner/events": "*",
+    "@corner/orders": "*",
+    "@corner/payments": "*",
+    "@stripe/react-stripe-js": "3.1.1",
+    "@stripe/stripe-js": "5.4.0",
+    "next": "15.1.3",
+    "react": "19.0.0",
+    "react-dom": "19.0.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.49.1",
+    "@types/react": "19.0.2",
+    "@types/react-dom": "19.0.2"
+  }
+}

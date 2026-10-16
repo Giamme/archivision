@@ -5,6 +5,19 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and versions are `major.minor` (0.1, 0.2, …; package.json holds them as 0.1.0, 0.2.0).
 
+## [0.4] - 2026-10-16
+
+The README shows what a map looks like, with an animated tour and screenshots, and a bigger example, the Corner Shop monorepo, is there to try repo mode on.
+
+### Highlights
+
+- The README, on GitHub and on npm, shows what a map looks like: an animated tour, and pictures of the three levels, a walkthrough, the branch view and an architecture.
+- A bigger example to try repo mode on, `examples/corner-shop`: an invented shop monorepo with a Next.js storefront and back office, TypeScript packages over Prisma, and two Python Lambda services on DynamoDB and S3, with two branches to compare. From a clone: `node bin/archivision.js repo examples/corner-shop --open`.
+
+### For contributors
+
+- `node scripts/readme-media.mjs` makes the README pictures again from the examples, in a headless Chrome (needs Google Chrome and ffmpeg).
+
 ## [0.3] - 2026-10-16
 
 archivision is on npm: npm install -g archivision.

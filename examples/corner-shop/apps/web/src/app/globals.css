@@ -1,0 +1,23 @@
+:root {
+  --ink: #1d1b19;
+  --paper: #faf8f5;
+  --accent: #b5502b;
+  --muted: #7a746c;
+  --line: #e4ded5;
+  --radius: 10px;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  color: var(--ink);
+  background: var(--paper);
+}
+
+body { margin: 0; }
+.container { max-width: 1120px; margin: 0 auto; padding: 24px 16px 64px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+.card { border: 1px solid var(--line); border-radius: var(--radius); background: #fff; overflow: hidden; }
+.button { background: var(--ink); color: #fff; border: 0; border-radius: 999px; padding: 10px 18px; cursor: pointer; }
+.button[disabled] { opacity: .5; cursor: default; }
+.muted { color: var(--muted); }
+.error { color: #a4161a; }
+table.data { width: 100%; border-collapse: collapse; }
+table.data th, table.data td { text-align: left; padding: 8px; border-bottom: 1px solid var(--line); }
+.admin { display: grid; grid-template-columns: 200px 1fr; gap: 32px; }
