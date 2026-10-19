@@ -88,6 +88,9 @@ const ARCH = !A.AZ.repo;
 console.log(`mode ${ARCH ? 'architecture' : 'repo'} · ${Object.values(A.NODE).filter(n => n.level === 1).length} blocks · rail ${A.SCENE.rail ? 'yes' : 'no'}`);
 const THREE = await import(T3);
 const fail = [], warn = [], out = [];
+// the loading panel goes once the map runs, and the shell's controls show
+if (doc.getElementById('az-load')) fail.push('the loading panel is still on the page after the map started');
+if (!doc.documentElement.classList.contains('az-up')) fail.push('the page never marked the map as started (html.az-up)');
 const cv = doc.querySelector('canvas');
 const proj = (x, y, z) => { const v = A.W(x, y, z).project(A.cam()); return [(v.x + 1) / 2 * W0, (1 - v.y) / 2 * H0, v.z]; };
 const fire = (el, type, x, y, extra = {}) => el.dispatchEvent(new win.MouseEvent(type, { bubbles: true, clientX: x, clientY: y, button: 0, ...extra }));
