@@ -755,6 +755,18 @@ FIGS3D.push({ id: 'az', name: '__NAME__', mod: (() => {
     #az-lead { position:fixed; left:0; top:0; width:100vw; height:100vh; pointer-events:none; z-index:5; display:none; overflow:visible; }
     #az-lead.on { display:block; }
     #az-lead line { stroke:var(--accent); stroke-width:1; stroke-dasharray:2 3; }
+    #az-find { position:fixed; z-index:7; left:50%; top:64px; transform:translateX(-50%); width:min(520px, calc(100vw - 24px)); padding:8px; background:var(--tipbg); border:1px solid var(--line); border-radius:12px;
+      box-shadow:0 10px 30px rgba(0,0,0,.25); font:12px/1.4 ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+    #az-find[hidden] { display:none; }
+    #az-find input { all:unset; box-sizing:border-box; width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:8px; color:var(--hi); background:var(--bg); font-size:13px; }
+    #az-find input:focus-visible { border-color:var(--accent); }
+    #az-find ul { list-style:none; margin:6px 0 0; padding:0; max-height:min(52vh, 420px); overflow:auto; scrollbar-width:thin; }
+    #az-find li { display:grid; grid-template-columns:auto 1fr; gap:2px 10px; padding:6px 10px; border-radius:7px; cursor:pointer; color:var(--ink); }
+    #az-find li[aria-selected="true"] { background:var(--bg); box-shadow:0 0 0 1px var(--accent) inset; }
+    #az-find li .lv { grid-row:span 2; align-self:center; font-size:9.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--accent); min-width:4.6em; }
+    #az-find li b { font-weight:500; color:var(--hi); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    #az-find li small { color:var(--dim); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    #az-find .none { padding:8px 10px 4px; color:var(--dim); }
   `;
   document.head.appendChild(css);
   const ins = document.createElement('aside'); ins.id = 'az-ins'; ins.setAttribute('aria-label', 'What is inside'); document.body.appendChild(ins);
@@ -1193,6 +1205,7 @@ FIGS3D.push({ id: 'az', name: '__NAME__', mod: (() => {
     if (e.key === ' ') { if (!e.repeat) playJourney(st.jour ? (st.jour.k + 1) % AZ.journeys.length : 0); return true; }
     if (/^[1-9]$/.test(e.key) && +e.key <= AZ.journeys.length) { playJourney(+e.key - 1); return true; }
     if (e.key === 'i' || e.key === 'I') { explain(); return true; }
+    if (e.key === '/') { openFind(); return true; }
     if (e.key === 'ArrowRight') { move(1); return true; }
     if (e.key === 'ArrowLeft') { move(-1); return true; }
     if (st.path.length && e.key === 'ArrowDown') { cycle(1); return true; }
@@ -1203,6 +1216,68 @@ FIGS3D.push({ id: 'az', name: '__NAME__', mod: (() => {
     }
     return false;
   }
+
+  /* ---------- find: "/" opens a box that jumps to any block, part or piece (a function, a file) by its name or path ---------- */
+  const LVL = { 1: 'block', 2: 'part', 3: REPO ? 'code' : 'piece' };
+  const FIND = Object.values(NODE).filter(n => n.level && n.kind !== 'zone' && n.id !== 'dock').map(n => {
+    const c = (n.item && n.item.code) || {}, where = [n.parent && n.parent.parent && n.parent.parent.name, n.parent && n.parent.name].filter(Boolean).join(' › ');
+    return { n, where, keys: [[n.name, 1], [n.tag, 1], [c.sym, 1], [c.p, .7], [c.p && c.p.split('/').pop(), .9]].filter(([t]) => t).map(([t, w]) => [String(t).toLowerCase(), w]) };
+  });
+  // how well one text matches the query: the whole of it, its start, a word's start, anywhere, then letters in order
+  const scoreText = (t, q) => {
+    if (t === q) return 100;
+    if (t.startsWith(q)) return 70 - Math.min(20, t.length - q.length) / 2;
+    const i = t.indexOf(q);
+    if (i > 0) return (/[\s/._\-›()[\]:#]/.test(t[i - 1]) ? 50 : 35) - Math.min(15, i) / 3;
+    let j = 0; for (const ch of t) if (ch === q[j]) j++;
+    return j === q.length && q.length > 1 ? 8 + q.length / t.length * 10 : 0;
+  };
+  function findAll(query, max = 12) {
+    const words = String(query).toLowerCase().trim().split(/\s+/).filter(Boolean);
+    if (!words.length) return [];
+    const out = [];
+    for (const f of FIND) {
+      let total = 0;
+      for (const q of words) { let best = 0; for (const [t, w] of f.keys) best = Math.max(best, scoreText(t, q) * w); if (!best) { total = 0; break; } total += best; }
+      if (total) out.push({ f, s: total + (3 - f.n.level) });
+    }
+    return out.sort((a, b) => b.s - a.s || a.f.n.name.length - b.f.n.name.length).slice(0, max).map(x => x.f);
+  }
+  // fly to a node found: a block opens; a part opens its block with it selected; a piece opens its part with it selected
+  function goTo(id) {
+    const n = NODE[id]; if (!n) return;
+    st.touched = true;
+    if (n.level === 1) open(n.id);
+    else if (n.level === 2) { if (top() === n.parent.id && st.path.length === 1) select(n.id); else open(n.parent.id, n.id); }
+    else { if (top() === n.parent.id) select(n.id); else open(n.parent.id, n.id); }
+  }
+  const findEl = document.createElement('div'); findEl.id = 'az-find'; findEl.hidden = true; findEl.setAttribute('role', 'dialog'); findEl.setAttribute('aria-label', 'Find on the map');
+  findEl.innerHTML = `<input type="search" placeholder="Find a block, part${REPO ? ', function or file' : ' or piece'}…" aria-label="Find" role="combobox" aria-expanded="false" aria-controls="az-find-list" aria-autocomplete="list" autocomplete="off" spellcheck="false"><ul id="az-find-list" role="listbox"></ul>`;
+  document.body.appendChild(findEl);
+  const findIn = findEl.querySelector('input'), findUl = findEl.querySelector('ul');
+  let FOUND = [], FOUNDI = 0;
+  function drawFound() {
+    const q = findIn.value.trim();
+    FOUND = findAll(q); FOUNDI = Math.min(FOUNDI, Math.max(0, FOUND.length - 1));
+    findUl.innerHTML = FOUND.map((f, i) => { const c = (f.n.item && f.n.item.code) || {};
+      return `<li role="option" id="az-find-${i}" data-n="${esc(f.n.id)}" aria-selected="${i === FOUNDI}"><span class="lv">${LVL[f.n.level]}</span><b>${esc(f.n.name)}</b><small>${esc([f.where, c.p ? `${unroot(c.p)}${c.l ? ':' + c.l : ''}` : ''].filter(Boolean).join(' · ') || (f.n.what || ''))}</small></li>`; }).join('')
+      || (q ? `<li class="none" role="presentation">Nothing on the map is called «${esc(q)}».</li>` : '');
+    findIn.setAttribute('aria-expanded', String(FOUND.length > 0));
+    if (FOUND.length) findIn.setAttribute('aria-activedescendant', `az-find-${FOUNDI}`); else findIn.removeAttribute('aria-activedescendant');
+    const on = findUl.querySelector('[aria-selected="true"]'); if (on) on.scrollIntoView({ block: 'nearest' });
+  }
+  function openFind() { st.touched = true; hideTip(true); findEl.hidden = false; findIn.select(); FOUNDI = 0; drawFound(); findIn.focus(); }
+  function closeFind() { findEl.hidden = true; findIn.blur(); }
+  findIn.addEventListener('input', () => { FOUNDI = 0; drawFound(); });
+  findIn.addEventListener('keydown', e => {
+    e.stopPropagation();
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); if (FOUND.length) { FOUNDI = (FOUNDI + (e.key === 'ArrowDown' ? 1 : -1) + FOUND.length) % FOUND.length; drawFound(); } }
+    else if (e.key === 'Enter') { e.preventDefault(); const f = FOUND[FOUNDI]; if (f) { closeFind(); goTo(f.n.id); } }
+    else if (e.key === 'Escape') { e.preventDefault(); closeFind(); }
+  });
+  findUl.addEventListener('pointerdown', e => e.preventDefault());   // keep the focus in the box until the jump
+  findUl.addEventListener('click', e => { const li = e.target.closest('li[data-n]'); if (li) { closeFind(); goTo(li.dataset.n); } });
+  findIn.addEventListener('blur', () => { setTimeout(() => { if (document.activeElement !== findIn) findEl.hidden = true; }, 0); });
 
   /* ---------- start: fly in to the whole plate, then a short tour unless the viewer takes over ---------- */
   let inited = false;
@@ -1229,7 +1304,7 @@ FIGS3D.push({ id: 'az', name: '__NAME__', mod: (() => {
     refresh();
   }
 
-  window.__az3 = { NODE, VIS, st, prog, TXT, PINS, PICK, open, back1, select, pickAt, onClick, playJourney, frameBox, boxFor, FREE, tipEl: () => tipEl, tip: () => tip, ins, key, cam: () => camera, W, TS, BOX0, AZ, href, PREF, setBranch, codeFor, flowsG, PORTV, SCENE, pickCmp, cmp: () => CUR_C, CM };
+  window.__az3 = { findAll, goTo, openFind, findEl: () => findEl, NODE, VIS, st, prog, TXT, PINS, PICK, open, back1, select, pickAt, onClick, playJourney, frameBox, boxFor, FREE, tipEl: () => tipEl, tip: () => tip, ins, key, cam: () => camera, W, TS, BOX0, AZ, href, PREF, setBranch, codeFor, flowsG, PORTV, SCENE, pickCmp, cmp: () => CUR_C, CM };
 
   return {
     group: g0, readout: say, demo: () => { st.touched = false; demo(); }, stop: () => {},
@@ -1245,9 +1320,10 @@ FIGS3D.push({ id: 'az', name: '__NAME__', mod: (() => {
             ['Next walkthrough', 'space', () => { st.touched = true; playJourney(st.jour ? (st.jour.k + 1) % AZ.journeys.length : 0); }],
             ...(ARCH ? [] : [['Branches', 'b', () => { st.touched = true; setBranch(!st.branch); }]]),
             ['Explain', 'i', () => { st.touched = true; explain(); }],
+            ['Find', '/', () => openFind()],
             ['Tour', '▶', () => { stopJourney(true); closeAll(); demo(); }]],
     view: { target: W(PX / 2, PY / 2, 0), dist: 34 },
     info: `<h2>${esc(REPO ? REPO.name : AZ.title)}</h2><p>Click a block to open it.</p>`,
-    hint: `click a block · ⓘ explains${ARCH ? '' : ' · b shows this branch'} · space plays a walkthrough · drag to orbit`,
+    hint: `click a block · ⓘ explains${ARCH ? '' : ' · b shows this branch'} · space plays a walkthrough · / finds · drag to orbit`,
   };
 })() });

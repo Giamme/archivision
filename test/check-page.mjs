@@ -415,6 +415,37 @@ doc.getElementById('theme').click(); frames(4); out.push(`theme → ${doc.docume
   out.push(`  open ${n.id} in iso: path ${JSON.stringify(A.st.path)} · fill ${(fr.fill * 100).toFixed(0)}% inside ${fr.inside} · roof ≥ ${minPx(t => t.node && t.node.parent === n && t.face === 'top')?.toFixed(1)}px`);
   if (!fr.inside) fail.push(`${n.id} not inside the view in Iso mode`);
   key('Escape'); frames(60); iso.click(); frames(60); }
+// find: "/" opens the box; typing a name and enter flies to that block, part or piece and selects it
+{
+  const fe = A.findEl(), fin = fe.querySelector('input');
+  key('/'); frames(2);
+  if (fe.hidden) fail.push('find: "/" did not open the find box');
+  const typeIn = t => { fin.value = t; fin.dispatchEvent(new win.Event('input', { bubbles: true })); };
+  const enter = () => fin.dispatchEvent(new win.KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+  const nodes = Object.values(A.NODE).filter(n => n.level && n.kind !== 'zone' && n.id !== 'dock');
+  const want = [3, 2, 1].map(l => nodes.find(n => n.level === l && n.name && A.findAll(n.name).length)).filter(Boolean);
+  let ok = 0;
+  for (const n of want) {
+    if (fe.hidden) { key('/'); frames(2); }
+    typeIn(n.name); frames(1);
+    const rows = [...fe.querySelectorAll('li[data-n]')];
+    const i = rows.findIndex(r => r.dataset.n === n.id);
+    if (i < 0) { fail.push(`find: «${n.name}» does not list ${n.id}`); continue; }
+    for (let k = 0; k < i; k++) fin.dispatchEvent(new win.KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
+    enter(); frames(90);
+    const wantPath = n.level === 1 ? [n.id] : n.level === 2 ? [n.parent.id] : [n.parent.parent.id, n.parent.id];
+    if (!fe.hidden) fail.push('find: the box stays open after enter');
+    if (JSON.stringify(A.st.path) !== JSON.stringify(wantPath)) fail.push(`find: ${n.id} opened ${JSON.stringify(A.st.path)}, not ${JSON.stringify(wantPath)}`);
+    else if (n.level > 1 && A.st.sel !== n.id) fail.push(`find: ${n.id} is not selected (selected ${A.st.sel})`);
+    else ok++;
+    key('Escape'); frames(40); key('Escape'); frames(40);
+  }
+  key('/'); frames(1); typeIn('zzqqxx-nothing-called-this'); frames(1);
+  if (fe.querySelectorAll('li[data-n]').length) fail.push('find: a query that matches nothing lists something');
+  fin.dispatchEvent(new win.KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); frames(2);
+  if (!fe.hidden) fail.push('find: esc did not close the box');
+  out.push(`find: ${ok}/${want.length} jumps (levels ${want.map(n => n.level).join(', ')})`);
+}
 checkPyCalls();
 out.push(`all links: ${LINKS.n} · bad ${LINKS.bad.length} · by kind ${JSON.stringify(LINKS.kinds)}`);
 { const cables = Object.values(A.VIS).flatMap(v => (v.IM ? v.IM.links : [])); out.push(`cables drawn ${cables.length} · dashed ${cables.filter(c => c.mat.dashed || c.mat.isLineDashedMaterial).length}`); }
