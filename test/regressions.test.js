@@ -115,3 +115,19 @@ test('a unit test file is credited to the runner it imports', () => {
     assert.equal(S.tests['tests/a.test.ts'].runnerProv, 'its imports');
   } finally { r.cleanup(); }
 });
+
+test('a page title with quotes, a newline, </script> or U+2028 stays a string in the page script', () => {
+  const { renderPage } = require('../lib');
+  const vm = require('vm');
+  for (const title of ["it's \\ a\nb", 'Shop </script><script>alert(1)</script>', 'a\u2028b\u2029c', '$& $1 $` x']) {
+    const html = renderPage({ ATLAS: {}, SCENE: {} }, title);
+    const scripts = [...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g)].map(m => m[1]);
+    assert.ok(!scripts.some(s => /alert\(1\)/.test(s) && !/FIGS3D\.push/.test(s)), 'no script of its own');
+    const mod = scripts.find(s => s.includes("FIGS3D.push({ id: 'az'"));
+    assert.ok(mod, `the figure module is still one script for ${JSON.stringify(title)}`);
+    const line = mod.slice(mod.indexOf("FIGS3D.push({ id: 'az'")).split('\n')[0];
+    const m = line.match(/name: ("(?:[^"\\]|\\.)*"), mod:/);
+    assert.ok(m, line.slice(0, 200));
+    assert.equal(vm.runInNewContext(m[1]), title);
+  }
+});
