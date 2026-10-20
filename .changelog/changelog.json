@@ -1,0 +1,71 @@
+{
+  "versions": [
+    {
+      "version": "0.5",
+      "date": "2026-10-20",
+      "summary": "Getting around a map is quicker: press / to find anything on it, and the URL now names what's open, so a link brings someone to the same place. The page also explains a missing map, and two fixes stop a blank page and a confusing python3 error.",
+      "entries": [
+        {
+          "type": "added",
+          "text": "Press `/` or the Find button to jump to any block, part, function or file on the map.",
+          "breaking": false,
+          "audience": "user",
+          "highlight": true,
+          "commits": [
+            "6029cf5"
+          ]
+        },
+        {
+          "type": "added",
+          "text": "Press `?` to open a sheet listing every key, gesture and button.",
+          "breaking": false,
+          "audience": "user",
+          "highlight": false,
+          "commits": [
+            "7db178e"
+          ]
+        },
+        {
+          "type": "added",
+          "text": "The page URL names what's open, so a link reopens the map at the same place; a Copy link button copies it, and browser back/forward step through what you opened.",
+          "breaking": false,
+          "audience": "user",
+          "highlight": true,
+          "commits": [
+            "2db132f"
+          ]
+        },
+        {
+          "type": "added",
+          "text": "When three.js or WebGL can't load, the page says why the map is missing instead of staying blank.",
+          "breaking": false,
+          "audience": "user",
+          "highlight": false,
+          "commits": [
+            "cf5fbcb"
+          ]
+        },
+        {
+          "type": "fixed",
+          "text": "A map whose title holds a line break or `</script>` renders instead of showing a blank page, and the title can no longer inject markup into the page.",
+          "breaking": false,
+          "audience": "user",
+          "highlight": false,
+          "commits": [
+            "b7e7dae"
+          ]
+        },
+        {
+          "type": "fixed",
+          "text": "An old python3 is reported as too old, not as `python3 failed: EPIPE`.",
+          "breaking": false,
+          "audience": "user",
+          "highlight": false,
+          "commits": [
+            "e2afa93"
+          ]
+        }
+      ]
+    }
+  ]
+}

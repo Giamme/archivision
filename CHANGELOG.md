@@ -5,6 +5,25 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and versions are `major.minor` (0.1, 0.2, …; package.json holds them as 0.1.0, 0.2.0).
 
+## [0.5] - 2026-10-20
+
+Getting around a map is quicker: press / to find anything on it, and the URL now names what's open, so a link brings someone to the same place. The page also explains a missing map, and two fixes stop a blank page and a confusing python3 error.
+
+### Highlights
+
+- Press `/` or the Find button to jump to any block, part, function or file on the map.
+- The page URL names what's open, so a link reopens the map at the same place; a Copy link button copies it, and browser back/forward step through what you opened.
+
+### Added
+
+- Press `?` to open a sheet listing every key, gesture and button.
+- When three.js or WebGL can't load, the page says why the map is missing instead of staying blank.
+
+### Fixed
+
+- A map whose title holds a line break or `</script>` renders instead of showing a blank page, and the title can no longer inject markup into the page.
+- An old python3 is reported as too old, not as `python3 failed: EPIPE`.
+
 ## [0.4] - 2026-10-16
 
 The README shows what a map looks like, with an animated tour and screenshots, and a bigger example, the Corner Shop monorepo, is there to try repo mode on.
