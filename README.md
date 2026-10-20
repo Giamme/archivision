@@ -144,6 +144,7 @@ It also prints what the sources left open (`unclear`). Edit the `.arch.json` by 
   - **esc** goes back.
 - The toolbar has **Iso view** (true isometric), **Revolve**, the light and dark theme, and the accent colour.
 - `?still` opens without the intro camera move; `?branch` opens in the branch view.
+- The address ends in `#` and the id of what is open (a block, a part, a function), so a link to the page opens it again, with no tour. **Copy link** in the bar copies it; the ids come from the map, so links keep working while the map does not change.
 
 ## Development
 

@@ -57,6 +57,7 @@ Object.defineProperty(G, 'innerHeight', { get: () => win.innerHeight, configurab
 G.devicePixelRatio = 2;
 G.Path2D = function () { return new Proxy({}, { get: () => () => {} }); };
 G.Image = win.Image;
+G.history = win.history;   // the page writes what is open into the URL's #hash
 G.addEventListener = win.addEventListener.bind(win); G.removeEventListener = win.removeEventListener.bind(win);
 G.requestAnimationFrame = cb => { RAFQ.push(cb); return RAFQ.length; };
 Object.defineProperty(G, 'performance', { value: { now: () => CLOCK, mark() {}, measure() {} }, configurable: true });
@@ -94,6 +95,29 @@ const fire = (el, type, x, y, extra = {}) => el.dispatchEvent(new win.MouseEvent
 const clickAt = (x, y) => { fire(cv, 'pointerdown', x, y); fire(cv, 'pointerup', x, y); };
 const key = k => win.dispatchEvent(new win.KeyboardEvent('keydown', { key: k, bubbles: true }));
 const read = () => doc.getElementById('read').textContent;
+// links: a page opened with #<node id> opens that node with no tour; opening and selecting write the hash back
+{
+  const h0 = (process.env.Q || '').replace(/^[^#]*/, ''), nodeOf = h => { try { return A.NODE[decodeURIComponent(h.slice(1))]; } catch { return null; } };
+  const n0 = h0 && nodeOf(h0);
+  if (n0) {
+    const wantPath = n0.level === 1 ? [n0.id] : n0.level === 2 ? [n0.parent.id] : [n0.parent.parent.id, n0.parent.id];
+    frames(220);   // past the time the tour would start
+    if (JSON.stringify(A.st.path) !== JSON.stringify(wantPath)) fail.push(`link: ${h0} opened ${JSON.stringify(A.st.path)}, not ${JSON.stringify(wantPath)}`);
+    else if (n0.level > 1 && A.st.sel !== n0.id) fail.push(`link: ${h0} selected ${A.st.sel}, not ${n0.id}`);
+    else out.push(`link: opened ${n0.id} from the URL, no tour`);
+  } else if (h0) out.push(`link: ${h0} names nothing on the map, normal start`);
+  while (A.st.path.length) A.back1(); frames(80);
+  const hashNow = () => { try { return decodeURIComponent(win.location.hash.slice(1)); } catch { return '?'; } };
+  const b = Object.values(A.NODE).find(n => n.level === 1 && n.id !== 'dock' && n.kids.length), p = b && b.kids[b.kids.length - 1];
+  if (b) {
+    A.open(b.id); frames(2);
+    if (hashNow() !== (A.st.sel || b.id)) fail.push(`link: opening ${b.id} wrote #${hashNow()}`);
+    A.select(p.id); frames(2);
+    if (hashNow() !== p.id) fail.push(`link: selecting ${p.id} wrote #${hashNow()}`);
+    A.back1(); frames(80);
+    if (win.location.hash) fail.push(`link: the whole map kept ${win.location.hash}`);
+  }
+}
 const visible = o => { for (let x = o; x; x = x.parent) if (!x.visible) return false; return true; };
 // CSS px of one em of the print on a plane, measured along its text line
 function fontPx(t) {
