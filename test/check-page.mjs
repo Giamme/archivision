@@ -410,6 +410,28 @@ for (let k = 0; k < A.AZ.journeys.length; k++) {
 }
 out.push(`journeys: ${jr.join(' ')} · «${read()}»`);
 key('Escape'); frames(20);
+// the controls sheet: "?" opens it with every key, the bar's buttons and the gestures; esc and "?" close it
+{
+  const sheet = doc.getElementById('az-keys'), btn = doc.getElementById('az-keys-b');
+  if (!sheet || !btn) fail.push('controls sheet: no #az-keys or no ? button');
+  else {
+    const path0 = JSON.stringify(A.st.path);
+    key('?'); frames(2);
+    if (sheet.hidden) fail.push('controls sheet: "?" did not open it');
+    const keys = [...sheet.querySelectorAll('dt')].map(d => d.textContent.replace(/\s+/g, ' ').trim());
+    const want = ['esc', '← →', '↑ ↓', 'enter', 'i', 't', '?', ...(A.AZ.journeys.length ? ['space'] : []), ...(ARCH ? [] : ['b']), 'click', 'drag', 'scroll'];
+    for (const k of want) if (!keys.includes(k)) fail.push(`controls sheet: no row for «${k}» (rows: ${keys.join(' | ')})`);
+    const bar = [...doc.querySelectorAll('#ctl-az button kbd')].map(k => k.textContent.trim()).filter(k => k && k !== '▶');
+    for (const k of bar) if (!keys.includes(k)) fail.push(`controls sheet: the bar's key «${k}» is not listed`);
+    if (btn.getAttribute('aria-expanded') !== 'true') fail.push('controls sheet: the ? button does not say it is expanded');
+    key('Escape'); frames(2);
+    if (!sheet.hidden) fail.push('controls sheet: esc did not close it');
+    if (JSON.stringify(A.st.path) !== path0) fail.push('controls sheet: the esc that closed it also went back');
+    btn.click(); frames(1); if (sheet.hidden) fail.push('controls sheet: the ? button did not open it');
+    key('?'); frames(1); if (!sheet.hidden) fail.push('controls sheet: "?" did not close it');
+    out.push(`controls sheet: ${keys.length} rows`);
+  }
+}
 // theme, accent, iso view
 doc.getElementById('theme').click(); frames(4); out.push(`theme → ${doc.documentElement.dataset.theme}`); doc.getElementById('theme').click(); frames(4);
 [...doc.querySelectorAll('#swatches button')][1].click(); frames(2);
