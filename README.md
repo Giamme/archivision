@@ -141,6 +141,7 @@ It also prints what the sources left open (`unclear`). Edit the `.arch.json` by 
   - **enter** opens;
   - **space** plays the next walkthrough;
   - **b** shows branches (repo pages);
+  - **/** finds a block, part, function or file by its name or path, and flies to it;
   - **esc** goes back.
 - The toolbar has **Iso view** (true isometric), **Revolve**, the light and dark theme, and the accent colour.
 - `?still` opens without the intro camera move; `?branch` opens in the branch view.
