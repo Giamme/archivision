@@ -1,0 +1,19 @@
+# Fails a pull request when a user-visible commit has no changelog fragment.
+# Installed by the changelogger skill; needs .changelog/changelogger.py (`changelogger vendor`).
+name: changelog
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  fragments:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Every user-visible change has a changelog fragment
+        run: python3 .changelog/changelogger.py check --range "origin/${{ github.base_ref }}..HEAD"
