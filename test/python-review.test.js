@@ -63,6 +63,24 @@ test('a python3 older than 3.10 is named as the reason the Python files are not 
   assert.match(o.stderr, /^archivision's Python reader needs Python 3\.10 or later; this python3 is 3\.\d+\.\d+\n$/);
 });
 
+test('a python3 older than 3.10 is named as the reason even when the request is bigger than the pipe (EPIPE)', () => {
+  // scan.py exits before it reads stdin, so Node's write of a big request meets a closed pipe; that is still "too old"
+  const files = {}; for (let i = 0; i < 300; i++) files[`pkg/m${i}.py`] = `def f${i}():\n    return ${JSON.stringify('x'.repeat(2000))}\n`;
+  const r = repoWith(files);
+  const bin = fs.mkdtempSync(path.join(os.tmpdir(), 'archivision-pyreview-epipe-')), PATH = process.env.PATH;
+  try {
+    fs.writeFileSync(path.join(bin, 'python3'), "#!/bin/sh\necho \"archivision's Python reader needs Python 3.10 or later; this python3 is 3.9.6\" >&2\nexit 2\n");
+    fs.chmodSync(path.join(bin, 'python3'), 0o755);
+    process.env.PATH = bin;
+    for (let k = 0; k < 3; k++) {
+      const S = scanRepo(r.root, {});
+      assert.deepEqual(S.unresolved.ast, { 'python-too-old': 300 });
+      const ast = S.adapters.find(a => a.name === 'ast');
+      assert.ok(!/EPIPE/.test(JSON.stringify(ast)), JSON.stringify(ast));
+    }
+  } finally { process.env.PATH = PATH; fs.rmSync(bin, { recursive: true, force: true }); r.cleanup(); }
+});
+
 test('review 3.2: a FIFO named like a Python file is skipped, a file over 2 MiB is counted, and the scan ends', { skip }, () => {
   const r = repoWith({ 'a.py': 'def f():\n    return 1\n', 'big.py': `X = "${'x'.repeat(2.2 * 1024 * 1024)}"\n` });
   try {
