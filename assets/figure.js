@@ -928,7 +928,7 @@ FIGS3D.push({ id: 'az', name: '__NAME__', mod: (() => {
     if (c.db.length) h += `<span class="k sub">${esc(RLC)}</span><div class="chips">${c.db.map(([m, r, g]) => `<button type="button" class="chip-b" data-port="${g}" title="${RW[r]} ${esc(m)}">${esc(m)} <em>${r === 'rw' ? 'r/w' : r}</em></button>`).join('')}</div>`;
     h += `<span class="k sub">Tests</span><p class="meta">${plural(c.vitest.length, `${RUN.unit} file`)} · ${plural(c.e2e.length, `${RUN.e2e} spec`)}${!c.vitest.length && !c.e2e.length ? ' · <b class="gap">no test reaches this part</b>' : ''}</p>`;
     if (c.vitest.length + c.e2e.length) h += more([...c.vitest.map(f => [f, (AZ.runners || {})[f] || RUN.unit]), ...c.e2e.map(f => [f, (AZ.runners || {})[f] || RUN.e2e])], 3, ([f, w]) => aSrc(f, null, null, `${w} · ${f.replace(TEST_RE, '')}`, 'test'), 'tests');
-    h += `<button type="button" class="copy" data-copy="${esc(k.id)}">Copy context for Claude</button></section>`;
+    h += `<button type="button" class="copy" data-copy="${esc(k.id)}">Copy context for Claude</button> <button type="button" class="copy" data-link>Copy link</button></section>`;
     return h;
   }
   function pieceCode(k) {
@@ -962,6 +962,38 @@ FIGS3D.push({ id: 'az', name: '__NAME__', mod: (() => {
     return (s && s.parent === n ? pieceCode(s) : '') + partCode(n, 'All code');
   }
   const renderCode = () => { const el = ins.querySelector('#az-code'); if (el) el.innerHTML = codeFor(); };
+  /* ---------- links: the URL's #hash names what is open (a block, a part, a function or piece), so a link opens it again ---------- */
+  const hashOf = id => id ? '#' + encodeURIComponent(id).replace(/%2F/g, '/') : '';
+  const nodeOfHash = () => {
+    let h = ''; try { h = decodeURIComponent(location.hash.slice(1)); } catch { return null; }
+    const n = h && Object.prototype.hasOwnProperty.call(NODE, h) ? NODE[h] : null;
+    return n && n.level && n.kind !== 'zone' ? n : null;
+  };
+  const LINKED = nodeOfHash();
+  // what the URL names: the selection inside what is open, else what is open; nothing on the whole map
+  const here = () => !st.path.length ? '' : st.sel && NODE[st.sel] && NODE[st.sel].kind !== 'zone' ? st.sel : top();
+  function goNode(n) {
+    if (n.level === 1) open(n.id);
+    else open(n.parent.id, n.id);   // a part: its block open, it selected; a piece: its part open, it selected
+  }
+  let HASHED = LINKED ? location.hash : '';   // a #hash that names nothing stays as it is until something opens
+  function syncHash() {
+    const want = hashOf(here());
+    if (want === HASHED || (!want && !HASHED)) return;
+    HASHED = want;
+    try { history.replaceState(history.state, '', want || location.pathname + location.search); } catch {}
+  }
+  addEventListener('hashchange', () => {
+    HASHED = location.hash;
+    const n = nodeOfHash(); st.touched = true;
+    if (n) goNode(n); else if (!location.hash) { stopJourney(true); closeAll(); frameBox(BOX0, 900); }
+  });
+  function copyLink(b) {
+    syncHash();
+    const url = location.href, label = b && b.firstChild ? b.firstChild : null, was = label ? label.textContent : '';
+    const done = ok => { if (!label) return; label.textContent = ok ? 'Copied' : was; setTimeout(() => { label.textContent = was; }, 1400); if (!ok) prompt('Copy this link', url); };
+    try { navigator.clipboard.writeText(url).then(() => done(true), () => done(false)); } catch { done(false); }
+  }
   function copyContext(id) {
     const k = NODE[id], c = k.item.code;
     const txt = `In ${REPO.name} (commit ${REPO.sha.slice(0, 7)}), look at «${k.name}» inside the «${k.parent.name}» block: ${k.tip || k.what || ''}\nFiles:\n${c.files.map(f => `- ${f[0]}`).join('\n')}\n${c.db.length ? `It touches these ${STORE.label} ${STORE.what}: ${c.db.map(d => d[0]).join(', ')}.\n` : ''}`;
@@ -1103,6 +1135,7 @@ FIGS3D.push({ id: 'az', name: '__NAME__', mod: (() => {
     else if (b.dataset.act === 'swap') { const bs = ins.querySelector('select[data-cmp="base"]'), hs = ins.querySelector('select[data-cmp="head"]'); if (bs && hs) pickCmp(hs.value, bs.value); }
     else if (b.dataset.open) { PREF.open = b.dataset.open; savePref(); const y = ins.scrollTop; panel(); ins.scrollTop = y; }
     else if (b.dataset.copy) { copyContext(b.dataset.copy); return; }
+    else if (b.dataset.link !== undefined) { copyLink(b); return; }
     else if (b.dataset.port) openPort(+b.dataset.port);
     else if (b.dataset.nCrumb) { while (st.path.length && top() !== b.dataset.nCrumb) back1(); }
     else if (b.dataset.dock !== undefined) { st.dockSel = +b.dataset.dock; say(); renderCode(); ins.querySelectorAll('.row[data-dock]').forEach(r => r.classList.toggle('on', r === b)); }
@@ -1358,7 +1391,7 @@ FIGS3D.push({ id: 'az', name: '__NAME__', mod: (() => {
     LINK0.copy(outlineMat.uniforms.color.value).lerp(INKHI, .3);
     const { c, D } = fitFor(BOX0, DIR_ISO);
     controls.minDistance = .35; controls.maxDistance = Math.max(90, D * 2.6);   // a big repo on a narrow screen needs the camera further out
-    if (STILL || REDUCE) frameBox(BOX0, 0);
+    if (STILL || REDUCE || LINKED) { frameBox(BOX0, 0); if (LINKED) { st.touched = true; goNode(LINKED); } }   // a link opens what it names, with no tour
     else {
       controls.target.copy(c); camera.position.copy(c).add(new THREE.Vector3(-.35, .8, 1).normalize().multiplyScalar(D * 2.3));
       frameBox(BOX0, 2200);
@@ -1375,11 +1408,12 @@ FIGS3D.push({ id: 'az', name: '__NAME__', mod: (() => {
     click: (hit, e) => { if (e) onClick(pickAt(e.clientX, e.clientY)); },
     tick: (now, dt) => {
       NOW = now; FRAME++; if (!inited) init();
-      runTimers(); camStep();
+      runTimers(); camStep(); syncHash();
       HOTL = []; update(dt);
       if (hoverDirty && !pressed) { hoverDirty = false; onHover(HP ? pickAt(HP[0], HP[1]) : null); }
     },
     panel: [[WHOLE, 'esc', () => { st.touched = true; stopJourney(); closeAll(); frameBox(BOX0, 900); }],
+            ['Copy link', '', () => { st.touched = true; copyLink(document.querySelector('#ctl-az button[data-x="link"]')); }, 'link'],
             ['Next walkthrough', 'space', () => { st.touched = true; playJourney(st.jour ? (st.jour.k + 1) % AZ.journeys.length : 0); }],
             ...(ARCH ? [] : [['Branches', 'b', () => { st.touched = true; setBranch(!st.branch); }]]),
             ['Explain', 'i', () => { st.touched = true; explain(); }],
