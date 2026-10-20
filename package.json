@@ -1,6 +1,6 @@
 {
   "name": "archivision",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Archivision: a 3D iso map of a codebase (parsed, no AI) or of an architecture (from documents and diagrams, with AI), linked to the code.",
   "license": "MIT",
   "author": "Giamme",
