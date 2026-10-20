@@ -31,6 +31,15 @@ node bin/archivision.js arch examples/shop/architecture.md --name "Corner Shop" 
 
 **Needs** Node 20 or later and git. Optional: Python 3.10 or later (`python3`) for Python repos, ripwire 0.6.7 for Go, the `claude` (Claude Code) or `codex` CLI, logged in, for architecture mode, and `pdftotext` for PDFs.
 
+**Updates.** Each run asks the npm registry, alongside the command and for at most about 1.5 seconds, whether a newer archivision is out. When one is, it says so on stderr once the command is done, never on stdout, with the command that updates it:
+
+```
+archivision 0.6.0 is out (you have 0.5.0). Update with:
+  npm i -g archivision@latest
+```
+
+A git clone is told to `git pull` instead, and npx to run `archivision@latest`. Nothing is installed for you. Offline, or on any error, it says nothing. It is off in CI, when stderr is not a terminal, and with `--no-update-check` or `ARCHIVISION_NO_UPDATE_CHECK=1`. Only the request for the latest version goes out; nothing about you or your code is sent.
+
 ## What a map shows
 
 All of these are the Corner Shop example (`examples/corner-shop` and `examples/shop`).

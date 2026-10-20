@@ -28,12 +28,14 @@ const HELP = `archivision: a 3D iso map you can open, linked to the code
   archivision render <model.arch.json> [--out file.html]   draw an architecture model again, after editing it by hand
 
   Any command: --open opens the page when it is written.
+  Each run checks npm for a newer archivision and says so on stderr; --no-update-check (or
+  ARCHIVISION_NO_UPDATE_CHECK=1) turns that off. It is also off in CI and when stderr is not a terminal.
 
   Sources for arch: .md .txt .mmd .puml .dot .json .yaml .html .svg .drawio, images (.png .jpg .webp .gif) and PDFs.
   The repo map (<page>.map.json) and the architecture model (<page>.arch.json) sit next to the page; edit them and run again.
   birdview, the old name, runs the same commands.`;
 
-const BOOL = new Set(['remap', 'fetch', 'open', 'help']), MANY = new Set(['src']);
+const BOOL = new Set(['remap', 'fetch', 'open', 'help', 'no-update-check']), MANY = new Set(['src']);
 function parse(argv) {
   const pos = [], o = {};
   for (let i = 0; i < argv.length; i++) {
@@ -140,9 +142,13 @@ function cmdRender(pos, o) {
   if (!cmd || o.help || cmd === 'help') { say(HELP); return; }
   const run = { repo: cmdRepo, arch: cmdArch, render: cmdRender }[cmd];
   if (!run) { console.error(`unknown command «${cmd}»\n\n${HELP}`); process.exit(2); }
+  // the update check runs alongside the command and only speaks, on stderr, once the command is done
+  const update = require('../lib/update-check').startUpdateCheck({ current: require('../package.json').version, flag: !!o['no-update-check'] });
   try {
     const out = await run(pos, o);
     if (o.open && out) openIt(out);
+    const note = await update.finish();
+    if (note) process.stderr.write(note);
   } catch (e) {
     console.error(`archivision ${cmd}: ${e.message}`);
     if (process.env.ARCHIVISION_DEBUG || process.env.BIRDVIEW_DEBUG) console.error(e.stack);
