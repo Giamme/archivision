@@ -134,7 +134,7 @@ It also prints what the sources left open (`unclear`). Edit the `.arch.json` by 
 ## The page
 
 - One HTML file. It loads three.js 0.160.0 from jsDelivr the first time it opens; everything else is inline.
-- Controls:
+- Controls (press **?** on the page, or its **?** button, for the full list):
   - **click** opens a block or part;
   - **ⓘ** or **i** explains it;
   - **← →** move between blocks;

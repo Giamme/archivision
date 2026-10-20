@@ -1186,8 +1186,71 @@ FIGS3D.push({ id: 'az', name: '__NAME__', mod: (() => {
     if (!want) return;
     if (tip && tip.id === want) hideTip(true); else { hideTip(true); showTip(want, true); }
   };
+  /* ---------- the controls sheet: "?" (or the ? button) lists every key, the bar's buttons and the mouse or touch gestures ---------- */
+  const NJ = Math.min(9, AZ.journeys.length);
+  const KEYS = [
+    ['esc', 'goes back one level, stops a walkthrough, closes a card'],
+    ['← →', 'the next block, or the next part when a part is open'],
+    ['↑ ↓', 'the next part or piece inside what is open'],
+    ['enter', 'opens the block or part that is selected'],
+    ['i', 'explains what is selected (as ⓘ does)'],
+    ...(AZ.journeys.length ? [['space', 'plays the next walkthrough']] : []),
+    ...(NJ ? [[NJ > 1 ? `1–${NJ}` : '1', NJ > 1 ? 'plays that walkthrough' : 'plays the walkthrough']] : []),
+    ...(ARCH ? [] : [['b', 'shows what a branch changes']]),
+    ['t', 'switches the light and dark theme'],
+    ['?', 'shows or hides this list'],
+  ];
+  const TOUCH = matchMedia('(hover: none) and (pointer: coarse)').matches;
+  const GESTURES = TOUCH
+    ? [['tap', 'opens a block or a part'], ['drag', 'turns the model'], ['pinch', 'zooms'], ['two fingers', 'pan']]
+    : [['click', 'opens a block or a part'], ['drag', 'turns the model'], ['scroll', 'zooms'], ['right-drag', 'pans']];
+  const keysCss = document.createElement('style');
+  keysCss.textContent = `
+    #az-keys-b { all:unset; cursor:pointer; width:28px; height:28px; display:grid; place-items:center; border:1px solid var(--line); border-radius:999px; background:var(--panel); color:var(--ink); font-size:13px; font-weight:600; }
+    #az-keys-b:hover, #az-keys-b[aria-expanded="true"] { border-color:var(--accent); color:var(--accent); }
+    #az-keys-b:focus-visible { outline:1px solid var(--accent); outline-offset:2px; }
+    #az-keys { position:fixed; z-index:8; right:16px; top:64px; width:min(380px, calc(100vw - 24px)); max-height:calc(100vh - 140px); overflow:auto; padding:14px 16px 16px; background:var(--tipbg); border:1px solid var(--line); border-radius:14px;
+      box-shadow:0 10px 30px rgba(0,0,0,.25); font:12px/1.5 ui-monospace, "SF Mono", Menlo, Consolas, monospace; color:var(--ink); scrollbar-width:thin; }
+    #az-keys[hidden] { display:none; }
+    #az-keys header { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+    #az-keys h2 { margin:0; font-size:10.5px; font-weight:500; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); }
+    #az-keys header button { all:unset; cursor:pointer; color:var(--dim); padding:2px 6px; border-radius:6px; }
+    #az-keys header button:hover, #az-keys header button:focus-visible { color:var(--hi); outline:1px solid var(--line); }
+    #az-keys h3 { margin:12px 0 4px; font-size:10px; font-weight:500; letter-spacing:.14em; text-transform:uppercase; color:var(--dim); }
+    #az-keys dl { display:grid; grid-template-columns:max-content 1fr; gap:5px 12px; margin:0; }
+    #az-keys dt { white-space:nowrap; }
+    #az-keys dd { margin:0; color:var(--ink); }
+    #az-keys kbd { display:inline-block; min-width:1.4em; padding:1px 6px; border:1px solid var(--line); border-bottom-width:2px; border-radius:5px; background:var(--bg); color:var(--hi); font:inherit; text-align:center; }
+    @media (max-width:819px) { #az-keys { left:12px; right:12px; width:auto; top:56px; } }
+  `;
+  document.head.appendChild(keysCss);
+  const keysEl = document.createElement('div'); keysEl.id = 'az-keys'; keysEl.hidden = true;
+  keysEl.setAttribute('role', 'dialog'); keysEl.setAttribute('aria-label', 'Keys and controls');
+  document.body.appendChild(keysEl);
+  const keysBtn = document.createElement('button'); keysBtn.id = 'az-keys-b'; keysBtn.type = 'button'; keysBtn.textContent = '?';
+  keysBtn.title = 'Keys and controls (?)'; keysBtn.setAttribute('aria-label', 'Keys and controls'); keysBtn.setAttribute('aria-expanded', 'false'); keysBtn.setAttribute('aria-controls', 'az-keys');
+  { const th = document.getElementById('theme'); if (th && th.parentNode) th.parentNode.insertBefore(keysBtn, th); else document.body.appendChild(keysBtn); }
+  const kbds = k => k.split(' ').map(x => `<kbd>${esc(x)}</kbd>`).join(' ');
+  // the bar's buttons, read from the page, so a button added there (with its key) shows here too
+  const barKeys = () => [...document.querySelectorAll('#ctl-az button')].map(b => { const k = b.querySelector('kbd'); return [k ? k.textContent.trim() : '', b.firstChild ? String(b.firstChild.textContent || '').trim() : b.textContent.trim()]; })
+    .filter(([k, l]) => k && l && k !== '▶' && !KEYS.some(([x]) => x === k));   // ▶ marks the tour button, it is no key
+  function drawKeys() {
+    const bar = barKeys();
+    keysEl.innerHTML = `<header><h2>Keys and controls</h2><button type="button" data-close aria-label="Close">esc ✕</button></header>`
+      + `<h3>${TOUCH ? 'Touch' : 'Mouse'}</h3><dl>${GESTURES.map(([g, w]) => `<dt>${esc(g)}</dt><dd>${esc(w)}</dd>`).join('')}</dl>`
+      + `<h3>Keys</h3><dl>${KEYS.map(([k, w]) => `<dt>${kbds(k)}</dt><dd>${esc(w)}</dd>`).join('')}</dl>`
+      + (bar.length ? `<h3>Buttons below</h3><dl>${bar.map(([k, l]) => `<dt>${kbds(k)}</dt><dd>${esc(l)}</dd>`).join('')}</dl>` : '');
+  }
+  function showKeys(on) {
+    if (on) { hideTip(true); drawKeys(); }
+    keysEl.hidden = !on; keysBtn.setAttribute('aria-expanded', String(!!on));
+  }
+  keysBtn.addEventListener('click', () => { st.touched = true; showKeys(keysEl.hidden); keysBtn.blur(); });
+  keysEl.addEventListener('click', e => { if (e.target.closest('[data-close]')) showKeys(false); });
+
   function key(e) {
     st.touched = true;
+    if (e.key === '?' || (e.key === 'Escape' && !keysEl.hidden)) { showKeys(e.key === '?' ? keysEl.hidden : false); return true; }
     if (e.key === 'Escape') { if (tip && tip.pinned) hideTip(true); else if (st.jour) { const o = J_OPENED; stopJourney(); if (o || st.path.length) { closeAll(); frameBox(BOX0, 900); } } else if (st.path.length) back1(); else if (st.branch) setBranch(false); else { st.focus = null; showLinks(null); refresh(); frameBox(BOX0, 900); } return true; }
     if (!ARCH && (e.key === 'b' || e.key === 'B') && !e.metaKey && !e.ctrlKey) { setBranch(!st.branch); return true; }
     if (e.key === ' ') { if (!e.repeat) playJourney(st.jour ? (st.jour.k + 1) % AZ.journeys.length : 0); return true; }
