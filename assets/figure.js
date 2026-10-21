@@ -888,7 +888,7 @@ FIGS3D.push({ id: 'az', name: '__NAME__', mod: (() => {
   });
 
   /* ---------- links into the code: GitHub at the scanned commit, or the viewer's editor ---------- */
-  const PREF = { open: REPO && REPO.pushed ? 'github' : 'vscode', root: REPO ? REPO.root : '' };
+  const PREF = { open: REPO && REPO.pushed && REPO.remote ? 'github' : 'vscode', root: REPO ? REPO.root : '' };
   try { const j = JSON.parse((localStorage.getItem('archivision-open') || localStorage.getItem('birdview-open')) || 'null'); if (j && j.open) Object.assign(PREF, j); } catch {}
   const savePref = () => { try { localStorage.setItem('archivision-open', JSON.stringify(PREF)); } catch {} };
   const encP = p => p.split('/').map(encodeURIComponent).join('/');
