@@ -16,6 +16,10 @@ const HELP = `archivision: a 3D iso map you can open, linked to the code
     --compare a..b,c..d     extra pairs to compare
     --fetch                 git fetch --prune first (off by default)
     --ripwire <binary>      ripwire, for Go (default: ARCHIVISION_RIPWIRE, else ripwire on the PATH; never one in the repo)
+    --check                 for CI: check the saved map against the code and write nothing. Fails (exit 1) when
+                            a source file is placed by no rule of the map, or the map names code that is gone
+                            (a glob that matches nothing, a part or block with no files, a walkthrough step or
+                            table model that no longer exists). Under GitHub Actions, each one is an annotation.
 
   archivision arch <files or folders…> [options]   draw an architecture from documents and diagrams (AI)
     --out <file.html>       the page (default: ./<name>.archivision.html)
@@ -35,7 +39,7 @@ const HELP = `archivision: a 3D iso map you can open, linked to the code
   The repo map (<page>.map.json) and the architecture model (<page>.arch.json) sit next to the page; edit them and run again.
   birdview, the old name, runs the same commands.`;
 
-const BOOL = new Set(['remap', 'fetch', 'open', 'help', 'no-update-check']), MANY = new Set(['src']);
+const BOOL = new Set(['remap', 'fetch', 'open', 'help', 'no-update-check', 'check']), MANY = new Set(['src']);
 function parse(argv) {
   const pos = [], o = {};
   for (let i = 0; i < argv.length; i++) {
@@ -66,6 +70,7 @@ function cmdRepo(pos, o) {
   const REPO = path.resolve(pos[0] || '.');
   if (!fs.existsSync(REPO)) throw new Error(`no such folder: ${REPO}`);
   const name = path.basename(REPO), OUT = path.resolve(o.out || `${name}.archivision.html`);
+  if (o.check) return checkRepo(REPO, name, OUT, o);
   fs.mkdirSync(path.dirname(OUT), { recursive: true });
   const t0 = Date.now();
   if (o.fetch) { say('fetching…'); execFileSync('git', ['-C', REPO, 'fetch', '--prune'], { stdio: 'inherit' }); }
@@ -90,6 +95,36 @@ function cmdRepo(pos, o) {
   const size = writePage(B, `${S.repo.name} · archivision`, OUT);
   say(`4 page    ${rel(OUT)} · ${(size / 1e6).toFixed(1)} MB · ${((Date.now() - t0) / 1000).toFixed(1)} s`);
   return OUT;
+}
+
+// --check: the saved map against the code, for CI. Writes nothing (no page, no map); exit 1 when the map has fallen
+// behind the code, 2 when there is no saved map to check
+function checkRepo(REPO, name, OUT, o) {
+  const { scanRepo, buildRepo } = lib();
+  const usage = m => Object.assign(new Error(m), { exit: 2 });
+  if (o.remap) throw usage('--check checks the saved map; --remap would write a new one');
+  const mapF = o.map ? path.resolve(o.map) : [`${stem(OUT)}.map.json`, path.resolve(`${name}.birdview.map.json`)].find(f => fs.existsSync(f));
+  if (!mapF || !fs.existsSync(mapF)) throw usage(`no saved map to check: ${rel(o.map ? mapF : `${stem(OUT)}.map.json`)} does not exist. Run archivision repo once and commit the map, or give --map`);
+  const t0 = Date.now();
+  if (o.fetch) { say('fetching…'); execFileSync('git', ['-C', REPO, 'fetch', '--prune'], { stdio: 'inherit' }); }
+  const S = scanRepo(REPO, { bases: o.bases, since: o.since, max: o.max, compare: o.compare, src: o.src, ripwire: o.ripwire });
+  say(`1 parse   ${S.summary}`);
+  const { check: C } = buildRepo(JSON.parse(fs.readFileSync(mapF, 'utf8')), S);
+  say(`2 check   ${rel(mapF)} against the code`);
+  const list = (head, items) => { if (items.length) say(`          ${head}:\n            ${items.join('\n            ')}`); };
+  list(`${C.unplaced.length} source ${C.unplaced.length === 1 ? 'file' : 'files'} no rule of the map places`, C.unplaced);
+  list(`${C.stale.length} map ${C.stale.length === 1 ? 'entry names' : 'entries name'} code that is gone`, C.stale);
+  // GitHub Actions turns these lines into annotations on the PR: on the file for an unplaced one, on the map otherwise
+  if (process.env.GITHUB_ACTIONS === 'true') {
+    const at = f => path.relative(process.cwd(), f).split(path.sep).join('/');
+    for (const f of C.unplaced) say(`::error file=${at(path.join(REPO, f))}::archivision: no rule of the map places this file; add it to a part's globs in ${at(mapF)}`);
+    for (const w of C.stale) say(`::error file=${at(mapF)}::archivision: the map names code that is gone: ${w.replace(/[\r\n%]/g, ' ')}`);
+  }
+  const bad = C.unplaced.length + C.stale.length;
+  say(bad ? `check failed: ${C.unplaced.length} unplaced, ${C.stale.length} stale · ${((Date.now() - t0) / 1000).toFixed(1)} s`
+    : `check passed: the map places every source file and names nothing that is gone · ${((Date.now() - t0) / 1000).toFixed(1)} s`);
+  if (bad) process.exitCode = 1;
+  return null;
 }
 
 function report(fixes, unclear) {
@@ -152,6 +187,6 @@ function cmdRender(pos, o) {
   } catch (e) {
     console.error(`archivision ${cmd}: ${e.message}`);
     if (process.env.ARCHIVISION_DEBUG || process.env.BIRDVIEW_DEBUG) console.error(e.stack);
-    process.exit(1);
+    process.exit(e.exit || 1);
   }
 })();
