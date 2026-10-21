@@ -397,7 +397,7 @@ FIGS3D.push({ id: 'az', name: '__NAME__', mod: (() => {
     : hop(f.from, f.to).map(s => s.pts);
 
   /* ---------- state, clock and timers ---------- */
-  const st = { path: [], sel: null, focus: null, hover: null, hoverPort: null, jour: null, touched: false, dockSel: 0, branch: !ARCH && /[?&]branch\b/.test(location.search) };
+  const st = { path: [], sel: null, focus: null, hover: null, hoverPort: null, jour: null, touched: false, dockSel: 0, branch: !ARCH && /[?&]branch\b/.test(location.search), gaps: false };
   const prog = {};
   for (const id in NODE) if (openable(NODE[id]) && NODE[id].kind !== 'rail') prog[id] = { p: 0, t: 0 };
   const top = () => st.path[st.path.length - 1] || null;
@@ -474,7 +474,7 @@ FIGS3D.push({ id: 'az', name: '__NAME__', mod: (() => {
       const v = VIS[m.id]; if (!v) continue;
       const n = v.n, p = prog[n.id].p;
       v.dim += ((root && root !== n.id ? 1 : 0) - v.dim) * kk;
-      v.hot += ((n.id === cur ? 1 : done.includes(n.id) ? .5 : !J && st.branch && !st.cmpWant && !root ? (BRM.has(n.id) ? 1 : BRHIT.has(n.id) ? .45 : 0) : 0) - v.hot) * kk;
+      v.hot += ((n.id === cur ? 1 : done.includes(n.id) ? .5 : !J && st.branch && !st.cmpWant && !root ? (BRM.has(n.id) ? 1 : BRHIT.has(n.id) ? .45 : 0) : !J && st.gaps && !root ? gapHeat(n.id) : 0) - v.hot) * kk;
       v.hov += ((!root && !J && (st.hover === n.id || st.focus === n.id) ? 1 : 0) - v.hov) * kk;
       v.halo += ((n.id === cur ? .36 : root === n.id ? .2 : 0) - v.halo) * kk;
       const up = ez(segT(p, .04, .46)), ob = 1 - segT(p, .06, .3), ol = 1 - segT(p, .14, .46);
@@ -522,7 +522,7 @@ FIGS3D.push({ id: 'az', name: '__NAME__', mod: (() => {
       kv.q = q; kv.root.visible = q > .001; if (!kv.root.visible) continue;
       const pk = prog[k.id] ? prog[k.id].p : 0;
       kv.dim += ((deeper && deeper !== k.id ? 1 : 0) - kv.dim) * kk;
-      kv.hot += ((k.id === st.sel ? 1 : st.branch && isCh(k) ? .7 : 0) - kv.hot) * kk;
+      kv.hot += ((k.id === st.sel ? 1 : st.branch && isCh(k) ? .7 : st.gaps && isGap(k) ? .7 : 0) - kv.hot) * kk;
       const up = ez(segT(pk, .04, .46)), ob = 1 - segT(pk, .06, .3), ol = 1 - segT(pk, .14, .46);
       kv.cover.visible = ol > .003; kv.cover.scale.y = Math.max(.001, q); kv.cover.position.y = liftOf(k) * up * TS;
       paint(kv.M, 1 - .86 * kv.dim, kv.hot, 0, ol, ob);
@@ -913,6 +913,17 @@ FIGS3D.push({ id: 'az', name: '__NAME__', mod: (() => {
   const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
   const more = (list, n, fn, label) => list.length <= n ? list.map(fn).join('') : list.slice(0, n).map(fn).join('') + `<details><summary>${list.length - n} more ${label}</summary>${list.slice(n).map(fn).join('')}</details>`;
   const pieceCh = c => !c || !c.p ? '' : CHF.get(c.p) === 'A' ? 'added' : CHS.has(`${c.p}#${c.sym}`) ? 'changed' : '';
+  /* ---------- test gaps (repo pages): the parts no unit test file or browser spec reaches, biggest first ---------- */
+  const codeOf = k => k && k.item && k.item.code && k.item.code.files ? k.item.code : null;
+  const isGap = k => { const c = codeOf(k); return !!c && !(c.vitest || []).length && !(c.e2e || []).length; };
+  const PARTS = REPO ? Object.values(NODE).filter(n => n.level === 2 && codeOf(n)) : [];
+  const GAPS = PARTS.filter(isGap).sort((a, b) => codeOf(b).nLines - codeOf(a).nLines || a.name.localeCompare(b.name));
+  const GAP_LINES = GAPS.reduce((t, k) => t + codeOf(k).nLines, 0);
+  // a block lights up by the share of its lines in untested parts: some light at all, full light when none is tested
+  const GAPB = new Map();
+  for (const k of PARTS) { const b = k.parent.id, g = GAPB.get(b) || { gap: 0, all: 0 }; g.all += codeOf(k).nLines; if (isGap(k)) g.gap += codeOf(k).nLines; GAPB.set(b, g); }
+  for (const [b, g] of GAPB) if (!g.gap) GAPB.delete(b);
+  const gapHeat = id => { const g = GAPB.get(id); return g ? .45 + .55 * (g.all ? g.gap / g.all : 1) : 0; };
   const isCh = k => { const c = k && k.item && k.item.code; if (!c) return false; return c.files ? c.files.some(f => CHF.has(f[0])) : !!pieceCh(c); };
   function openIn() {
     if (!REPO) return '';
@@ -1031,12 +1042,13 @@ FIGS3D.push({ id: 'az', name: '__NAME__', mod: (() => {
     if (J) { const jj = AZ.journeys[J.k]; return out(`walkthrough ${J.k + 1} · step ${Math.max(1, J.i + 1)} of ${jj.steps.length} · ${stepName(jj.steps[Math.max(0, J.i)]).toLowerCase()}`); }
     if (st.hoverPort) return out(`port ${st.hoverPort} · ${GROUP[st.hoverPort].name.toLowerCase()}`);
     const f = st.hover || st.focus;
+    if (st.gaps && !f) return out(`test gaps · ${GAPS.length} of ${PARTS.length} parts no test reaches · ${GAPB.size} blocks lit`);
     if (st.branch && !f) return out(CUR_C && !st.cmpWant ? `${CUR_C.hl} vs ${CUR_C.bl} · ${CUR_C.f.length} files changed · ${CUR_C.mods.length} blocks lit` : 'compare branches · pick a pair');
     out(f ? `${MOD[f].short.toLowerCase()} · ${MOD[f].parts.length} parts · ${MOD[f].count}` : `${LIST.filter(m => m.id !== 'dock').length} blocks · ${REPO ? `${AZ.totals.files} files · ` : ''}${AZ.journeys.length} walkthroughs · drag to orbit`);
   }
   const row = (attrs, n, t, c, d, on, go) => `<button type="button" class="row${on ? ' on' : ''}" ${attrs}><span class="n">${n}</span><span class="t">${esc(t)}</span><span class="c${go ? ' go' : ''}">${esc(c || '')}</span>${d ? `<span class="d">${esc(d)}</span>` : ''}</button>`;
   const sites = list => list && list.length ? `<details class="sites"><summary>${plural(list.length, 'place')} in the code</summary>${list.map(([p, l, fs, ts, tp, tl, te, st, , k, cn, col]) => aSrc(p, l, null, `${fs || 'module'} → ${ts} · ${loc(p, l)}`, k === 'call' ? 'call-site' : 'ref-site', k === 'call' ? cn : ts, [tp, tl, te], col, k === 'call' && st ? { st } : null)).join('')}</details>` : '';
-  const keysTxt = `<b>click</b> a block to open it · <b>ⓘ</b> or <b>i</b> explains · <b>← →</b> move · <b>enter</b> open · <b>space</b> next walkthrough${ARCH ? '' : ' · <b>b</b> this branch'} · <b>esc</b> back`;
+  const keysTxt = `<b>click</b> a block to open it · <b>ⓘ</b> or <b>i</b> explains · <b>← →</b> move · <b>enter</b> open · <b>space</b> next walkthrough${ARCH ? '' : ' · <b>b</b> this branch · <b>g</b> test gaps'} · <b>esc</b> back`;
   function panel() {
     const J = st.jour, t = J ? null : top();
     if (t === 'dock') {
@@ -1053,7 +1065,7 @@ FIGS3D.push({ id: 'az', name: '__NAME__', mod: (() => {
       const kick = n.level === 1 ? esc(LAYER[n.m.layer].name) : `${KIND[n.kind].label} · inside ${esc(n.parent.name)}`;
       let h = `<nav class="crumbs"><button type="button" data-act="root">${WHOLE}</button>›${crumbs}</nav>
         <div class="head"><span class="k">${kick}</span><h2>${esc(n.name)}</h2>${n.tip ? `<p class="lead">${esc(n.tip)}</p>` : ''}${n.what && n.what !== n.tip ? `<p>${esc(n.what)}</p>` : ''}${n.level === 1 && n.m.count ? `<span class="chip">${esc(n.m.count)}</span>` : ''}</div>`;
-      const cc = k => { if (st.branch && isCh(k)) return k.item.code.files ? `${k.item.code.files.filter(f => CHF.has(f[0])).length} changed` : pieceCh(k.item.code); return openable(k) ? `▸ ${k.kids.length} inside` : (n.level === 2 && k.item.sk ? KL[k.item.sk] : KIND[k.kind].label); };
+      const cc = k => { if (st.gaps && isGap(k)) return 'no test reaches it'; if (st.branch && isCh(k)) return k.item.code.files ? `${k.item.code.files.filter(f => CHF.has(f[0])).length} changed` : pieceCh(k.item.code); return openable(k) ? `▸ ${k.kids.length} inside` : (n.level === 2 && k.item.sk ? KL[k.item.sk] : KIND[k.kind].label); };
       h += `<section><span class="k">Inside · ${n.kids.length} ${n.level === 1 ? 'parts' : REPO ? 'symbols' : 'pieces'}</span>${n.kids.map(k => row(`data-n="${esc(k.id)}"`, num(k.idx), k.name, cc(k), k.what, k.id === st.sel, openable(k) || (st.branch && isCh(k)))).join('')}</section>`;
       h += `<div id="az-code">${codeFor()}</div>`;
       if (n.links.length) h += `<section><span class="k">Connections inside</span>${n.links.map(l => { const L = (n.level === 1 ? n.m.links : n.item.links || []).find(x => x.from === l.a.item.id && x.to === l.b.item.id); return row(`data-n="${esc(l.a.id)}" data-link="1"`, '→', `${l.a.tag} → ${l.b.tag}`, L && L.n ? plural(L.n, 'call') : '', l.label, false) + sites(L && L.sites); }).join('')}</section>`;
@@ -1074,6 +1086,17 @@ FIGS3D.push({ id: 'az', name: '__NAME__', mod: (() => {
         <section><span class="k">Steps · click one to open it</span>${jj.steps.map((s, i) => { const c = (jj.code || [])[i];
           return row(`data-m="${s}"${c && c.sel ? ` data-sel="${esc(c.pc || c.sel)}"` : ''}`, num(i), c && c.sym && !c.db ? c.sym : stepName(s), isPort(s) ? RLC : MOD[s].short, (jj.notes || [])[i] || '', i === J.i) + (c && c.p ? `<div class="step-src">${(c.db ? dataLink(c.p, c.l, loc(c.p, c.l), c.m, c.st, c.res) : aSrc(c.p, c.l, c.e, loc(c.p, c.l), 'symbol', c.sym))}</div>` : ''); }).join('')}</section>
         ${openIn()}<div class="keys"><b>space</b> next walkthrough · <b>esc</b> stop</div>`;
+      return;
+    }
+    if (st.gaps) {
+      const none = PARTS.length && GAPS.length === PARTS.length;
+      ins.innerHTML = `<button type="button" class="back" data-act="gaps">← Leave the test gaps view</button>
+        <div class="head"><span class="k">Test gaps</span>
+          <h2>${GAPS.length ? `${plural(GAPS.length, 'part')} no test reaches` : 'A test reaches every part'}</h2>
+          <p class="meta">${GAPS.length} of ${plural(PARTS.length, 'part')} · ${GAP_LINES.toLocaleString('en-US')} lines untested · ${plural(GAPB.size, 'block')} lit</p>
+          <p>${none ? `The scan found no ${esc(RUN.unit)} file or ${esc(RUN.e2e)} spec that reaches this code, so every part is a gap.` : `A part is a gap when no ${esc(RUN.unit)} file imports its code and no ${esc(RUN.e2e)} spec visits it. Lit blocks hold gaps: the brighter, the bigger the untested share of their lines.`} Biggest gap first; open one to see its code.</p></div>
+        ${GAPS.length ? `<section><span class="k">Untested parts · biggest first</span>${GAPS.map(k => row(`data-m="${esc(k.parent.id)}" data-sel="${esc(k.id)}"`, '○', k.name, `${codeOf(k).nLines.toLocaleString('en-US')} lines`, `${k.parent.name} · ${plural(codeOf(k).files.length, 'file')}`, false, true)).join('')}</section>` : ''}
+        <div class="keys"><b>g</b> or <b>esc</b> leaves the test gaps view · ${keysTxt}</div>`;
       return;
     }
     if (st.branch) {
@@ -1107,7 +1130,8 @@ FIGS3D.push({ id: 'az', name: '__NAME__', mod: (() => {
     const T = AZ.totals || {};
     ins.innerHTML = (REPO ? `<div class="head"><span class="k">Archivision · repo</span><h2>${esc(REPO.name)}</h2><p>${esc(AZ.intro)}</p>
         <p class="meta">${T.files.toLocaleString('en-US')} files · ${T.lines.toLocaleString('en-US')} lines · ${T.symbols.toLocaleString('en-US')} symbols${T.models ? ` · ${T.models} ${esc(STORE.label)} ${esc(STORE.what)}` : ''}<br>read from <b>${esc(REPO.branch)}</b> at ${esc(REPO.sha.slice(0, 7))} · ${esc(REPO.scanned.slice(0, 10))}</p>
-        <button type="button" class="branch-b" data-act="branch"><span>Compare branches</span><em>${CUR_C ? `${esc(CUR_C.hl)} vs ${esc(CUR_C.bl)}: ${plural(CUR_C.f.length, 'file')} changed` : 'no comparisons in this build'}</em></button>`
+        <button type="button" class="branch-b" data-act="branch"><span>Compare branches</span><em>${CUR_C ? `${esc(CUR_C.hl)} vs ${esc(CUR_C.bl)}: ${plural(CUR_C.f.length, 'file')} changed` : 'no comparisons in this build'}</em></button>
+        <button type="button" class="branch-b" data-act="gaps"><span>Test gaps</span><em>${GAPS.length ? `${GAPS.length} of ${plural(PARTS.length, 'part')} no test reaches` : 'a test reaches every part'}</em></button>`
       : `<div class="head"><span class="k">Archivision · architecture</span><h2>${esc(AZ.title)}</h2><p>${esc(AZ.intro)}</p>
         <p class="meta">${plural(T.blocks, 'block')} · ${plural(T.parts, 'part')} · ${plural(T.pieces, 'piece')}${T.ports ? ` · ${plural(T.ports, 'port')}` : ''}${AZ.source ? `<br>${esc(AZ.source)}` : ''}</p>`) + `
         <p>Drag to turn the model, scroll to zoom, right-drag to pan.</p></div>
@@ -1120,8 +1144,13 @@ FIGS3D.push({ id: 'az', name: '__NAME__', mod: (() => {
     const C = AZ.coverage; if (!REPO || !C) return '';
     return `<section class="code coverage"><span class="k">Coverage</span>${C.lines.map(l => `<p class="meta">${esc(l[0].toUpperCase() + l.slice(1))}.</p>`).join('')}</section>`;
   }
+  function setGaps(on) {
+    st.gaps = !!(on && REPO); if (st.gaps) st.branch = false; stopJourney(true); hideTip(true);
+    if (!st.path.length) showLinks(null);
+    refresh(); ins.scrollTop = 0;
+  }
   function setBranch(on) {
-    st.branch = on && !ARCH; stopJourney(true); hideTip(true);
+    st.branch = on && !ARCH; if (st.branch) st.gaps = false; stopJourney(true); hideTip(true);
     if (!st.path.length) showLinks(null);
     refresh(); ins.scrollTop = 0;
   }
@@ -1132,6 +1161,7 @@ FIGS3D.push({ id: 'az', name: '__NAME__', mod: (() => {
     if (b.dataset.act === 'root') { closeAll(); }
     else if (b.dataset.act === 'stop') stopJourney();
     else if (b.dataset.act === 'branch') setBranch(!st.branch);
+    else if (b.dataset.act === 'gaps') setGaps(!st.gaps);
     else if (b.dataset.act === 'swap') { const bs = ins.querySelector('select[data-cmp="base"]'), hs = ins.querySelector('select[data-cmp="head"]'); if (bs && hs) pickCmp(hs.value, bs.value); }
     else if (b.dataset.open) { PREF.open = b.dataset.open; savePref(); const y = ins.scrollTop; panel(); ins.scrollTop = y; }
     else if (b.dataset.copy) { copyContext(b.dataset.copy); return; }
@@ -1241,7 +1271,7 @@ FIGS3D.push({ id: 'az', name: '__NAME__', mod: (() => {
     ['i', 'explains what is selected (as ⓘ does)'],
     ...(AZ.journeys.length ? [['space', 'plays the next walkthrough']] : []),
     ...(NJ ? [[NJ > 1 ? `1–${NJ}` : '1', NJ > 1 ? 'plays that walkthrough' : 'plays the walkthrough']] : []),
-    ...(ARCH ? [] : [['b', 'shows what a branch changes']]),
+    ...(ARCH ? [] : [['b', 'shows what a branch changes'], ['g', 'lights the parts no test reaches']]),
     ['t', 'switches the light and dark theme'],
     ['?', 'shows or hides this list'],
   ];
@@ -1296,8 +1326,9 @@ FIGS3D.push({ id: 'az', name: '__NAME__', mod: (() => {
   function key(e) {
     st.touched = true;
     if (e.key === '?' || (e.key === 'Escape' && !keysEl.hidden)) { showKeys(e.key === '?' ? keysEl.hidden : false); return true; }
-    if (e.key === 'Escape') { if (tip && tip.pinned) hideTip(true); else if (st.jour) { const o = J_OPENED; stopJourney(); if (o || st.path.length) { closeAll(); frameBox(BOX0, 900); } } else if (st.path.length) back1(); else if (st.branch) setBranch(false); else { st.focus = null; showLinks(null); refresh(); frameBox(BOX0, 900); } return true; }
+    if (e.key === 'Escape') { if (tip && tip.pinned) hideTip(true); else if (st.jour) { const o = J_OPENED; stopJourney(); if (o || st.path.length) { closeAll(); frameBox(BOX0, 900); } } else if (st.path.length) back1(); else if (st.branch) setBranch(false); else if (st.gaps) setGaps(false); else { st.focus = null; showLinks(null); refresh(); frameBox(BOX0, 900); } return true; }
     if (!ARCH && (e.key === 'b' || e.key === 'B') && !e.metaKey && !e.ctrlKey) { setBranch(!st.branch); return true; }
+    if (REPO && (e.key === 'g' || e.key === 'G') && !e.metaKey && !e.ctrlKey) { setGaps(!st.gaps); return true; }
     if (e.key === ' ') { if (!e.repeat) playJourney(st.jour ? (st.jour.k + 1) % AZ.journeys.length : 0); return true; }
     if (/^[1-9]$/.test(e.key) && +e.key <= AZ.journeys.length) { playJourney(+e.key - 1); return true; }
     if (e.key === 'i' || e.key === 'I') { explain(); return true; }
@@ -1415,7 +1446,7 @@ FIGS3D.push({ id: 'az', name: '__NAME__', mod: (() => {
     panel: [[WHOLE, 'esc', () => { st.touched = true; stopJourney(); closeAll(); frameBox(BOX0, 900); }],
             ['Copy link', '', () => { st.touched = true; copyLink(document.querySelector('#ctl-az button[data-x="link"]')); }, 'link'],
             ['Next walkthrough', 'space', () => { st.touched = true; playJourney(st.jour ? (st.jour.k + 1) % AZ.journeys.length : 0); }],
-            ...(ARCH ? [] : [['Branches', 'b', () => { st.touched = true; setBranch(!st.branch); }]]),
+            ...(ARCH ? [] : [['Branches', 'b', () => { st.touched = true; setBranch(!st.branch); }], ['Test gaps', 'g', () => { st.touched = true; setGaps(!st.gaps); }]]),
             ['Explain', 'i', () => { st.touched = true; explain(); }],
             ['Find', '/', () => openFind()],
             ['Tour', '▶', () => { stopJourney(true); closeAll(); demo(); }]],

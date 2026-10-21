@@ -56,6 +56,8 @@ All of these are the Corner Shop example (`examples/corner-shop` and `examples/s
 
 ![The branch view comparing feature/gift-cards with dev: 9 files changed, the Orders, Checkout, Actions and Payments blocks lit, dashed arcs from their callers](https://raw.githubusercontent.com/Giamme/archivision/main/media/branches.webp)
 
+**Test gaps.** Press **g** (or **Test gaps** in the bar) to light every block holding a part that no test reaches, brighter where more of its lines are untested, with those parts listed biggest first.
+
 **Architecture.** `archivision arch` draws the same kind of map from documents and diagrams: here the Corner Shop's architecture document, with its services, outside providers, event bus and walkthroughs.
 
 ![The Corner Shop architecture: twelve blocks for the shop, back office, auth, catalog, orders, payments, fulfilment and notifier services, Postgres, Stripe, Sendcloud and Postmark, with five walkthroughs listed](https://raw.githubusercontent.com/Giamme/archivision/main/media/architecture.webp)
@@ -150,6 +152,7 @@ It also prints what the sources left open (`unclear`). Edit the `.arch.json` by 
   - **enter** opens;
   - **space** plays the next walkthrough;
   - **b** shows branches (repo pages);
+  - **g** lights the test gaps: every part no unit test or browser spec reaches, listed biggest first (repo pages);
   - **/** finds a block, part, function or file by its name or path, and flies to it;
   - **esc** goes back.
 - The toolbar has **Iso view** (true isometric), **Revolve**, the light and dark theme, and the accent colour.

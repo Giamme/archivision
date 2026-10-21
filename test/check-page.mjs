@@ -409,6 +409,29 @@ else { key('b'); frames(60); const lit = Object.values(A.VIS).filter(v => v.n.le
   A.pickCmp(A.CM.bases[0], 'no-such-branch'); frames(5); out.push(`  missing pair: «${A.ins.querySelector('h2').textContent}» · ${A.ins.querySelector('pre') ? A.ins.querySelector('pre').textContent : '-'}`);
   { const d = A.CM.list[A.CM.def]; A.pickCmp(d.base, d.head); frames(30); }
   key('b'); frames(30); out.push(`  after b: «${read()}» · arcs ${A.flowsG.children.length}`); }
+// test gaps (repo pages): g lights every block holding a part no test reaches, lists those parts biggest first,
+// and a row opens its part; in an architecture g does nothing
+if (ARCH) { key('g'); frames(10); if (A.st.gaps) fail.push('g turned on a test gaps view in an architecture page'); }
+else {
+  const code = n => n.item && n.item.code && n.item.code.files ? n.item.code : null;
+  const parts = Object.values(A.NODE).filter(n => n.level === 2 && code(n)), gaps = parts.filter(n => !code(n).vitest.length && !code(n).e2e.length);
+  const wantB = new Set(gaps.map(n => n.parent.id));
+  key('g'); frames(60);
+  const litB = Object.values(A.VIS).filter(v => v.n.level === 1 && v.hot > .4).map(v => v.n.id);
+  const rows = [...A.ins.querySelectorAll('.row[data-sel]')], lines = rows.map(r => +r.querySelector('.c').textContent.replace(/\D/g, ''));
+  out.push(`test gaps: «${read()}» · ${gaps.length} of ${parts.length} parts untested · ${litB.length} blocks lit · ${rows.length} rows`);
+  if (!A.st.gaps) fail.push('g did not turn on the test gaps view');
+  if (litB.length !== wantB.size || litB.some(b => !wantB.has(b))) fail.push(`test gaps lights ${JSON.stringify(litB)}, expected ${JSON.stringify([...wantB])}`);
+  if (JSON.stringify(rows.map(r => r.dataset.sel).sort()) !== JSON.stringify(gaps.map(n => n.id).sort())) fail.push(`test gaps lists ${rows.length} parts, expected ${gaps.length}`);
+  if (lines.some((l, i) => i && l > lines[i - 1])) fail.push(`test gaps are not biggest first: ${lines.join(',')}`);
+  if (rows[0]) { const want = rows[0].dataset.sel; rows[0].click(); frames(120);
+    if (A.st.sel !== want) fail.push(`a test gaps row opened ${A.st.sel}, expected ${want}`);
+    const n = A.NODE[A.st.path[0]], hot = n ? n.kids.filter(k => A.VIS[k.id] && A.VIS[k.id].hot > .5 && k.id !== A.st.sel).length : 0, wantHot = gaps.filter(k => k.parent === n && k.id !== A.st.sel).length;
+    if (hot !== wantHot) fail.push(`test gaps: ${n && n.id} lights ${hot} untested parts, expected ${wantHot}`);
+    key('Escape'); frames(80); }
+  key('g'); frames(40);
+  if (A.st.gaps || Object.values(A.VIS).some(v => v.n.level === 1 && v.hot > .4)) fail.push('g did not leave the test gaps view');
+}
 // a walkthrough step row opens its block at the right part
 { const j = A.AZ.journeys.findIndex(j => j.code.some(c => c && c.sel)); if (j >= 0) { A.playJourney(j); frames(20); const i = A.AZ.journeys[j].code.findIndex(c => c && c.sel), rowEl = A.ins.querySelectorAll('.row[data-m]')[i];
   const srcs = A.ins.querySelectorAll('.step-src a.src').length; rowEl.click(); frames(120); const want = A.AZ.journeys[j].code[i];
