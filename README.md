@@ -94,6 +94,16 @@ The scan changes nothing in the repo it maps, neither its files nor its `.git`. 
 - `--map other.json` uses a map from somewhere else, for example one an LLM wrote.
 - Every glob and anchor is checked against the parse on each build; anything that no longer matches is reported.
 
+**Keeping the map honest in CI.** Commit the map and run `archivision repo . --out <page>.html --check` in CI (it reads `<page>.map.json`, or `--map`). It writes nothing and exits 1 when:
+- a source file is placed by no rule of the map (no glob, and no part owns its folder);
+- the map names code that is gone: a glob that matches nothing, a part or block left with no files, a walkthrough step whose block, part or symbol no longer exists, or a table model the schema no longer has.
+
+Files placed by their folder rather than a glob, models left out of every table group, and parts outside every zone only print as warnings on a normal run; they don't fail the check. With no saved map it exits 2. Under GitHub Actions each problem is also an `::error` annotation, on the file or on the map.
+
+```yaml
+- run: npx archivision repo . --out docs/arch.archivision.html --check
+```
+
 **Branches**
 - The scanner compares each base (`--bases`, default `dev,main,master`, local or `origin/`) with every branch active in the last `--since` days, up to `--max` branches. Add more pairs with `--compare`.
 - It never fetches unless you pass `--fetch`.
